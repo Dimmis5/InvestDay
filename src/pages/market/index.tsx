@@ -6,7 +6,6 @@ import marketStyles from "../../styles/Market.module.css";
 
 import InfoBox from "../../components/InfoBox.component.jsx";
 import TableSearch from "../../components/TableSearch.component.jsx";
-// import NavBar from "./NavBar.jsx/index.js.js.js";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 import { AppProps } from "next/app";
 import { useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import { useFetch } from "../../context/FetchContext.js";
 import wallet_image from "src/public/assets/wallet.svg";
 import Button from "../../components/Button.component";
 import { useWallet } from "../../context/WalletContext";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Market(this: any) {
@@ -22,16 +22,38 @@ export default function Market(this: any) {
   const [data, setData] = useState([] as any);
   const [input, setInput] = useState("");
   const fetch = useFetch();
-  let tmpName;
+
+  // Actions populaires affichées par défaut
+  const defaultStocks = [
+    { symbol: "AAPL", name: "Apple Inc." },
+    { symbol: "MSFT", name: "Microsoft Corporation" },
+    { symbol: "GOOGL", name: "Alphabet Inc." },
+    { symbol: "TSLA", name: "Tesla, Inc." },
+    { symbol: "AMZN", name: "Amazon.com, Inc." },
+    { symbol: "META", name: "Meta Platforms, Inc." },
+    { symbol: "NVDA", name: "NVIDIA Corporation" },
+    { symbol: "JPM", name: "JPMorgan Chase & Co." },
+    { symbol: "V", name: "Visa Inc." },
+    { symbol: "WMT", name: "Walmart Inc." },
+  ];
 
   const onChange = (e: any) => {
-    tmpName = e.target.value;
-    setInput(tmpName);
+    const value = e.target.value;
+    setInput(value);
+    
+    // Si l'utilisateur efface tout, revenir aux actions par défaut
+    if (value === "") {
+      setData([]);
+    }
   };
 
   const handleKeyDown = (event: any) => {
-    if (event.key === "Enter" && input !== null) {
+    if (event.key === "Enter" && input !== null && input.trim() !== "") {
       fetchSearch(input);
+    } else if (event.key === "Escape") {
+      // Touche Échap pour revenir aux actions par défaut
+      setInput("");
+      setData([]);
     }
   };
 
@@ -49,12 +71,11 @@ export default function Market(this: any) {
 
   let list = [];
 
-  //check if data is not undefined and not empty
+  // Utiliser les résultats de recherche OU les actions par défaut
   if (typeof data !== "undefined" && data.length !== 0) {
-    //console.log(data);
-    //get data.symbol, data.name for each dictionnary of data
+    // Résultats de recherche
     for (let i = 0; i < data.length; i++) {
-      //check if name contains "warrant" or "Warrant" or "WARRANT" or "Warrants" or "WARRANTS" or "warrants" anf if , then skip
+      // Filtrer les warrants
       if (
         data[i]["name"] &&
         (data[i]["name"].includes("warrant") ||
@@ -71,13 +92,16 @@ export default function Market(this: any) {
         name: data[i]["name"],
       });
     }
+  } else {
+    // Actions par défaut si pas de recherche
+    list = defaultStocks;
   }
 
   return (
     <>
       <Head>
-        <title>InvestTrade - Home</title>
-        <meta name="description" content="Page d'accueil" />
+        <title>InvestTrade - Marchés</title>
+        <meta name="description" content="Recherche d'actions" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -113,13 +137,23 @@ export default function Market(this: any) {
               <input
                 className={marketStyles.formSubmit}
                 type="text"
-                placeholder="Rechercher..."
+                placeholder="Rechercher une action (ex: AAPL, TSLA, MSFT)..."
                 name="value"
                 value={input}
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
               />
             </div>
+            {input === "" && (
+              <p style={{ 
+                textAlign: "center", 
+                color: "#666", 
+                fontSize: "14px", 
+                marginTop: "10px" 
+              }}>
+                Affichage des actions populaires - Tapez pour rechercher
+              </p>
+            )}
           </div>
 
           <div className={homeStyles.tableContainer}>

@@ -1,10 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-};
-
-module.exports = nextConfig;
-module.exports = {
+  // Exposer les variables d'environnement côté serveur
+  serverRuntimeConfig: {
+    secret: process.env.JWT_SECRET || 'default-secret-key',
+  },
+  // Variables accessibles dans l'API (côté serveur)
+  env: {
+    API_POLYGON_KEY: process.env.API_POLYGON_KEY,
+    JWT_SECRET: process.env.JWT_SECRET,
+  },
+  // Configuration webpack pour le hot reload
   webpack: (config, _) => ({
     ...config,
     watchOptions: {
@@ -14,3 +20,5 @@ module.exports = {
     },
   }),
 };
+
+module.exports = nextConfig;
