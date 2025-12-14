@@ -8,8 +8,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://user:password@db:5432/prismadb?schema=public"
+  url      = env("DATABASE_URL")
 }
+
 
 model User {
   id        Int      @id @default(autoincrement())

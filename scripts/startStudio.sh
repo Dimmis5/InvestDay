@@ -1,3 +1,10 @@
+#!/bin/sh
+set -e
+
 cd /app
-# npx prisma generate
-# npx prisma studio
+
+echo "🔄 Waiting for database to be ready..."
+sleep 5
+
+echo "🎨 Starting Prisma Studio..."
+npx prisma studio --hostname 0.0.0.0

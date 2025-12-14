@@ -1,4 +1,4 @@
-version: "3.8"
+
 services:
   next:
     container_name: next
@@ -7,36 +7,35 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
     depends_on:
       - db
     environment:
-      - DATABASE_URL="postgresql://user:password@db:5432/prismadb?schema=public"
+      DATABASE_URL: postgresql://user:password@db:5432/nestjs?schema=public
     networks:
       - app-network
     entrypoint: ["sh", "/app/scripts/start.sh"]
+
   studio:
     container_name: studio
     build:
       context: .
     ports:
       - "5555:5555"
-    volumes:
-      - .:/app
     depends_on:
       - db
     environment:
-      - DATABASE_URL="postgresql://user:password@db:5432/prismadb?schema=public"
+      DATABASE_URL: postgresql://user:password@db:5432/nestjs?schema=public
+
     networks:
       - app-network
     entrypoint: ["sh", "/app/scripts/startStudio.sh"]
+
   db:
     image: postgres:12
     container_name: db
     restart: always
     ports:
-      - "5432:5432"
+      - "5435:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password

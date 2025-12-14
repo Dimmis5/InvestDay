@@ -1,23 +1,20 @@
-FROM node:16.15-alpine3.16
+FROM node:18-alpine3.18
 
-# Create app directory
 WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+RUN apk add --no-cache openssl1.1-compat
+
 COPY package*.json ./
-COPY prisma ./prisma/
-# Install prisma
 RUN npm ci
-RUN npm uninstall bcrypt
-RUN npm install bcrypt
 
-# Bundle app source
+# Copier le schema Prisma avant de générer le client
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copier le reste du code
 COPY . ./
-# RUN npx prisma migrate deploy
-# Build the app
-# RUN npm run build
-EXPOSE 3000
-EXPOSE 5555
-# generate prisma client
 
+# Build Next.js
+RUN npm run build
+
+EXPOSE 3000
