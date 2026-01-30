@@ -124,20 +124,42 @@ async function getLogoStock(
   return svg;
 }
 
+// Dans stocks.service.ts, fonction getLastPrice
 async function getLastPrice(
   symbol: string,
   userId: number,
   ip: string
-): Promise<any[]> {
-  let url = `https://api.polygon.io/v1/summaries?ticker.any_of=${symbol}&apiKey=${API_POLYGON_KEY}`;
+): Promise<any> {
+  console.log("🚀 getLastPrice appelée pour le symbole:", symbol);
+  console.log("🔑 Clé API (début):", API_POLYGON_KEY?.substring(0, 6) + "...");
+
+  let url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${API_POLYGON_KEY}`;
+
+  console.log("📡 URL appelée:", url);
+
   const response = await fetch(url, {
     method: "GET",
-    headers: createHeader(userId as unknown as string, ip as unknown as string),
+    headers: {}, // On a retiré createHeader
   });
 
   const data = await response.json();
+  console.log("📦 Réponse brute de Polygon:", data);
 
-  return data;
+  // Formatage CRITIQUE pour que index.ts comprenne
+  if (data.results && data.results.length > 0) {
+    const formattedResponse = {
+      results: [{
+        price: data.results[0].c, // Le prix de clôture
+        symbol: symbol
+      }]
+    };
+    console.log("✅ Réponse formatée:", formattedResponse);
+    return formattedResponse;
+  } else {
+    console.error("❌ Aucun résultat dans la réponse Polygon:", data);
+    // On retourne quand même un tableau vide pour éviter l'erreur "Cannot read properties of undefined"
+    return { results: [] };
+  }
 }
 
 const stocksService = {
