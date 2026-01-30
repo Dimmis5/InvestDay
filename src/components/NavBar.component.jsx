@@ -7,24 +7,36 @@ import Image from "next/image";
 import Link from "next/link";
 
 function Navbar() {
-  const { logout } = useAuthentification();
+  const { logout, user } = useAuthentification();
   const [active, setActive] = useState("l1");
+  const [menu, setMenu] = useState(false);
+
   function handleToggle(state) {
     setActive(state);
   }
 
-  const [menu, setMenu] = useState(false);
   function toggleMenu() {
     setMenu((prevState) => !prevState);
   }
 
   return (
-    <div className={navBarStyles.navBarContainer}>
-      <div className={navBarStyles.logoContainer}>
-        <Link id="logo-click" href={"/"}>
-          <Image src={logo} width={100} alt="logo" />
-        </Link>
+    <nav className={navBarStyles.navBarContainer}>
+      {/* SECTION GAUCHE : Logo et Identification */}
+      <div className={navBarStyles.logoSection}>
+        <div className={navBarStyles.logoContainer}>
+          <Link id="logo-click" href={"/"}>
+            <Image src={logo} width={100} alt="logo" priority />
+          </Link>
+        </div>
+
+        {user && (
+          <div className={navBarStyles.userEmailLeft}>
+            {user.email}
+          </div>
+        )}
       </div>
+
+      {/* SECTION DROITE : Menu de navigation */}
       <ul
         className={`${navBarStyles.navButtonContainer} ${
           menu ? navBarStyles.isActived : ""
@@ -60,13 +72,15 @@ function Navbar() {
           to="/ranks"
         />
         <NavTab
-          handleToggle={(id) => logout()}
+          handleToggle={() => logout()}
           active={active}
           id="logout"
           title="Déconnexion"
           to="/login"
         />
       </ul>
+
+      {/* ICONE MENU MOBILE */}
       <div
         className={`${navBarStyles.menu} ${menu ? navBarStyles.change : ""}`}
         onClick={toggleMenu}
@@ -75,7 +89,7 @@ function Navbar() {
         <div className={navBarStyles.menuLine2}></div>
         <div className={navBarStyles.menuLine3}></div>
       </div>
-    </div>
+    </nav>
   );
 }
 

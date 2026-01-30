@@ -5,39 +5,70 @@
   padding-inline: 20px;
   border-bottom: 1px solid var(--clrUnselected);
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Pousse logoSection à gauche et navButtonContainer à droite */
+  align-items: center;
+  background-color: white;
+  position: relative;
+}
+
+/* Bloc Logo + Email */
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logoContainer {
+  display: flex;
   align-items: center;
 }
 
+.userEmailLeft {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  border-left: 1px solid #ddd;
+  padding-left: 15px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Bloc de navigation à droite */
 .navButtonContainer {
   display: flex;
   justify-content: flex-end;
-  width: 100%;
   align-items: center;
   list-style: none;
-  display: flex;
+  margin: 0;
+  padding: 0;
 }
 
 .navButtonContainer li {
   list-style: none;
   display: flex;
 }
+
 .navButtonContainer li a {
-  vertical-align: center;
+  vertical-align: middle;
   display: flex;
   margin-left: 40px;
-  list-style: none;
   text-decoration: none;
   color: var(--clrUnselected);
   font-family: Inter;
   font-weight: 600;
   font-size: 14px;
+  transition: color 0.2s ease;
 }
+
 .navButtonContainer li a.active {
   color: var(--clrSelected);
   font-weight: 700;
 }
 
+/* Menu Burger */
 .menu {
   display: none;
 }
@@ -52,47 +83,54 @@
   transition: 0.3s ease;
 }
 
+/* --- RESPONSIVE --- */
 @media only screen and (max-width: 750px) {
+  .userEmailLeft {
+    display: none; /* Cache l'email sur mobile pour éviter les chevauchements */
+  }
+
   .navBarContainer {
     flex-direction: column;
+    height: auto;
     padding-inline: 0px;
+    align-items: flex-start;
+  }
+
+  .logoSection {
+    padding: 15px 20px;
   }
 
   .navButtonContainer {
     width: 100%;
     text-align: center;
-    padding-left: 0px;
     display: none;
-    z-index: 10;
+    flex-direction: column;
     background-color: white;
-    border-bottom-left-radius: 25px;
-    border-bottom-right-radius: 25px;
-    border-bottom: 1px solid black;
+    z-index: 10;
+    border-bottom: 1px solid #eee;
+  }
+
+  .isActived {
+    display: flex;
   }
 
   .navButtonContainer li {
-    display: block;
-    border-top: 1px solid var(--primary);
-    margin-bottom: 15px;
-    padding-right: 0;
-    font-size: 20px;
+    width: 100%;
+    border-top: 1px solid #f5f5f5;
   }
 
   .navButtonContainer li a {
-    display: block;
-    margin-left: 0px;
+    width: 100%;
+    padding: 15px 0;
+    margin-left: 0;
+    justify-content: center;
   }
 
   .menu {
     display: block;
-    margin-right: 20px;
     position: absolute;
-    right: 0;
-    top: 30px;
-  }
-
-  .isActived {
-    display: block;
+    right: 20px;
+    top: 25px;
   }
 
   .change .menuLine1 {
