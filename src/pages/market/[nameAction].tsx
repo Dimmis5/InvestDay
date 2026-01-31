@@ -11,15 +11,17 @@ import jwt from "jsonwebtoken";
 import { Request } from "../../types/request.type";
 import InfoBox from "../../components/InfoBox.component";
 import { useWallet } from "../../context/WalletContext";
-import wallet_image from "src/public/assets/wallet.svg";
 import Highcharts from "highcharts/highstock";
-import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 import { useAuthentification } from "../../context/AuthContext";
 import Button from "../../components/Button.component";
-if (typeof Highcharts === "object") {
-  HighchartsExporting(Highcharts);
-}
+
+// Importer dynamiquement les modules d'exportation
+import("highcharts/modules/exporting" as any).then(({ default: HighchartsExporting }) => {
+  if (typeof Highcharts === "object") {
+    HighchartsExporting(Highcharts);
+  }
+});
 
 export default function DetailAction(req: Request) {
   const [logo, setLogo] = useState("");
@@ -197,7 +199,7 @@ export default function DetailAction(req: Request) {
                   ? (wallets[selectedId]?.cash || 0).toFixed(2) + " $"
                   : "$"
               }
-              icon={wallet_image}
+              icon="/assets/wallet.svg"
             />
           </div>
           <div className={homeStyles.titleContainer}>

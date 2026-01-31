@@ -1,7 +1,7 @@
 import { apiHandler } from "../../../helpers/api/api-handler";
 import jwt from "jsonwebtoken";
 import type { NextApiRequest, NextApiResponse } from "next";
-// import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 
 import bcrypt from "bcrypt";
@@ -36,7 +36,7 @@ async function login(req: NextApiRequest, res: NextApiResponse<any>) {
   if (!pass) {
     throw "Username or password is incorrect";
   }
-  if(!user.isAdmin) throw "Login disabled";
+  //if(!user.isAdmin) throw "Login disabled";
   const token = jwt.sign(
     { sub: user.id, isAdmin: user.isAdmin },
     serverRuntimeConfig.secret || "secret",

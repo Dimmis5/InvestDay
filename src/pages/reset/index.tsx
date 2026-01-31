@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuthentification } from "../../context/AuthContext";
 import homeStyles from "../../styles/Home.module.css";
 import loginStyles from "../../styles/Login.module.css";
-import logo from "src/public/assets/logo.webp";
+//import logo from "src/public/assets/logo.webp";
 import Image from "next/image";
 import Partners from "../../components/Partners.component";
 import { useFetch } from "../../context/FetchContext.js";
@@ -69,7 +69,7 @@ export default function Login() {
       <main className={homeStyles.pageContainer}>
         <div className={loginStyles.container}>
           <div className={loginStyles.imageDessus}>
-            <Image src={logo} width={200} alt="logo" />
+            <Image src="/assets/logo.webp" width={200} alt="logo" />
           </div>
           <div
             className={`${loginStyles.main} ${

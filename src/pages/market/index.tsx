@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { Inter } from "@next/font/google";
+import { Inter } from "next/font/google";
 import homeStyles from "../../styles/Home.module.css";
 import marketStyles from "../../styles/Market.module.css";
 
@@ -11,7 +11,7 @@ import { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import { useFetch } from "../../context/FetchContext.js";
 
-import wallet_image from "src/public/assets/wallet.svg";
+//import wallet_image from "src/public/assets/wallet.svg";
 import Button from "../../components/Button.component";
 import { useWallet } from "../../context/WalletContext";
 
@@ -127,7 +127,7 @@ export default function Market(this: any) {
                   ? (wallets[selectedId]?.cash || 0).toFixed(2) + " $"
                   : "$"
               }
-              icon={wallet_image}
+              icon="/assets/wallet.svg"
             />
           </div>
         </div>

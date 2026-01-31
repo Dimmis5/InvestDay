@@ -1,11 +1,11 @@
 import Head from "next/head";
 
-import { Inter } from "@next/font/google";
+import { Inter } from "next/font/google";
 import { AppProps } from "next/app";
 import { useRouter } from "next/router";
-import cash from "src/public/assets/cash.svg";
-import total from "src/public/assets/total.svg";
-import wallet from "src/public/assets/wallet.svg";
+//import cash from "src/public/assets/cash.svg";
+//import total from "src/public/assets/total.svg";
+//import wallet from "src/public/assets/wallet.svg";
 import Button from "../components/Button.component";
 import InfoBox from "../components/InfoBox.component.jsx";
 import DashBoardLayout from "../components/layouts/DashBoard.layout";
@@ -75,14 +75,14 @@ export default function Wallet() {
                 selectedId + 1
               }`}
               desc={wallets ? assetsCached.toFixed(2) + " $" : "$"}
-              icon={wallet}
+              icon="/assets/wallet.svg"
             />
             <InfoBox
               title={`Cash portefeuille n°${selectedId + 1}`}
               desc={
                 wallets ? wallets[selectedId]?.cash?.toFixed(2) + " $" : "$"
               }
-              icon={cash}
+              icon="/assets/cash.svg"
             />
             <InfoBox
               title={`Valeur totale indicative portefeuille n°${
@@ -95,7 +95,7 @@ export default function Wallet() {
                     ) + " $"
                   : "$"
               }
-              icon={total}
+              icon="/assets/total.svg"
             />
           </div>
           <div className={homeStyles.tableContainer}>

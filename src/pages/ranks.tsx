@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { Inter } from "@next/font/google";
+import { Inter } from "next/font/google";
 import homeStyles from "../styles/Home.module.css";
 import TableRanks from "../components/TableRanks.component.jsx";
 import DashBoardLayout from "../components/layouts/DashBoard.layout";

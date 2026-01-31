@@ -11,9 +11,9 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Action, Status } from "../types/dataTransaction";
 
-import wallet from "src/public/assets/wallet.svg";
-import cash from "src/public/assets/cash.svg";
-import total from "src/public/assets/total.svg";
+//import wallet from "src/public/assets/wallet.svg";
+//import cash from "src/public/assets/cash.svg";
+//import total from "src/public/assets/total.svg";
 import { useFetch } from "../context/FetchContext";
 import { useWallet } from "../context/WalletContext";
 type Data = {
@@ -74,14 +74,14 @@ export default function Home() {
             <InfoBox
               title={`Valeur de vos actions portefeuille n°${selectedId + 1}`}
               desc={wallets ? assetsCached.toFixed(2) + " $" : "$"}
-              icon={wallet}
+              icon="/assets/wallet.svg"
             />
             <InfoBox
               title={`Cash portefeuille n°${selectedId + 1}`}
               desc={
                 wallets ? wallets[selectedId]?.cash?.toFixed(2) + " $" : "$"
               }
-              icon={cash}
+              icon="/assets/cash.svg"
             />
             <InfoBox
               title={`Valeur totale portefeuille n°${selectedId + 1}`}
@@ -92,7 +92,7 @@ export default function Home() {
                     ) + " $"
                   : "$"
               }
-              icon={total}
+              icon="/assets/total.svg"
             />
           </div>
           <div className={homeStyles.tableContainer}>

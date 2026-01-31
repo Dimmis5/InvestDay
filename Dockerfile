@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl1.1-compat
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copier le schema Prisma avant de générer le client
 COPY prisma ./prisma/

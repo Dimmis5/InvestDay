@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import navBarStyles from "../styles/NavBar.module.css";
 import NavTab from "./NavTab.component";
-import logo from "src/public/assets/logo.webp";
+//import logo from "src/public/assets/logo.webp";
 import { useAuthentification } from "../context/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,7 +25,7 @@ function Navbar() {
       <div className={navBarStyles.logoSection}>
         <div className={navBarStyles.logoContainer}>
           <Link id="logo-click" href={"/"}>
-            <Image src={logo} width={100} alt="logo" priority />
+            <Image src="/assets/logo.webp" width={100} alt="logo" priority />
           </Link>
         </div>
 
