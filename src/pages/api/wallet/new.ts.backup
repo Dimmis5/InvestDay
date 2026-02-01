@@ -6,7 +6,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 // import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 
+import getConfig from "next/config";
 import walletsService from "../../../services/wallets/wallets.service";
+const { serverRuntimeConfig } = getConfig();
 
 // listen for get request
 export default apiHandler(getAll);

@@ -5,6 +5,8 @@ import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
 
 import bcrypt from "bcrypt";
+import getConfig from "next/config";
+const { serverRuntimeConfig } = getConfig();
 
 // listen for get request
 export default apiHandler(login);
@@ -37,7 +39,7 @@ async function login(req: NextApiRequest, res: NextApiResponse<any>) {
   //if(!user.isAdmin) throw "Login disabled";
   const token = jwt.sign(
     { sub: user.id, isAdmin: user.isAdmin },
-    process.env.secret || "secret",
+    serverRuntimeConfig.secret || "secret",
     {
       expiresIn: "7d",
     }

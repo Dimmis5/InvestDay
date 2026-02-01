@@ -7,7 +7,9 @@ import { User } from "../../../types/user.type";
 import { prisma } from "../../../lib/prisma";
 
 import bcrypt from "bcrypt";
+import getConfig from "next/config";
 
+const { serverRuntimeConfig } = getConfig();
 
 // listen for get request
 export default apiHandler(walletById);
