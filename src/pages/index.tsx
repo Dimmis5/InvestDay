@@ -43,10 +43,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>InvestTrade - Home</title>
+        <title>InvestDays - Home</title>
         <meta name="description" content="Page d'accueil" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon2.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={homeStyles.headerContainer}>
