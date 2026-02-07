@@ -12,11 +12,15 @@ export default function Partners() {
   return (
     <div className={partnersStyles.container}>
       <Link href="https://polygon.io/">
-        <Image src="/assets/partners/polygon.svg" alt="Polygon" className={partnersStyles.image} />
+        <Image src="/assets/partners/polygon.svg" 
+        width={150} height={150} 
+        alt="Polygon" 
+        className={partnersStyles.image} />
       </Link>
       <Link href="https://www.alti-trading.fr/">
         <Image
           src="/assets/partners/alttrading.png"
+          width={150} height={150} 
           alt="AltiTrading"
           className={partnersStyles.image}
         />
@@ -24,6 +28,7 @@ export default function Partners() {
       <Link href="https://www.alphavantage.co/">
         <Image
           src="/assets/partners/vantage.png"
+          width={150} height={150} 
           alt="Alpha Vantage"
           className={partnersStyles.image}
         />

@@ -1,4 +1,3 @@
-
 services:
   next:
     container_name: next
@@ -9,14 +8,22 @@ services:
       - "3000:3000"
     depends_on:
       - db
+    # --- CONFIGURATION VOLUMES POUR LE HOT RELOAD ---
+    volumes:
+      - .:/app              # Synchronise ton code local avec le container
+      - /app/node_modules   # Préserve les modules installés dans l'image Linux
+      - /app/.next          # Évite les conflits de cache de build
+    # -----------------------------------------------
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/nestjs?schema=public
       API_POLYGON_KEY: ${API_POLYGON_KEY}
+      NODE_ENV: development # Définit l'environnement en mode développement
     env_file:
       - .env
     networks:
       - app-network
-    entrypoint: ["sh", "/app/scripts/start.sh"]
+    # On utilise npm run dev pour activer la surveillance des fichiers (watch mode)
+    command: npm run dev 
 
   studio:
     container_name: studio
@@ -26,9 +33,11 @@ services:
       - "5555:5555"
     depends_on:
       - db
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/nestjs?schema=public
-
     networks:
       - app-network
     entrypoint: ["sh", "/app/scripts/startStudio.sh"]

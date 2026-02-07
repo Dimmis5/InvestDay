@@ -13,10 +13,10 @@ code {
 }
 
 :root {
-  --premier: #286eff;
-  --deuxieme: #4a83ff;
-  --troisieme: #8aadff;
-  --quatrieme: #f2f6ff;
+  --premier: #f3ca3e;
+  --deuxieme: #ffdb58;
+  --troisieme: #ffeaa7;
+  --quatrieme: #fffdf2;
   --clrUnselected: #bdbdbd;
   --clrSelected: #000000;
   --line: #f2f2f2;

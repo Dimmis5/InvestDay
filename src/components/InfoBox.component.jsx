@@ -5,7 +5,7 @@ function InfoBox({ title, desc, icon }) {
   return (
     <div className={InfoBoxStyles.infoBox}>
       <div className={InfoBoxStyles.infoBoxIcon}>
-        <Image src={icon} alt={icon}></Image>
+        <Image src={icon} alt={icon} height={50} width={50}></Image>
       </div>
       <div className={InfoBoxStyles.infoBoxContent}>
         <div className={InfoBoxStyles.infoBoxTitle}>{title}</div>

@@ -199,7 +199,7 @@ export default function DetailAction(req: Request) {
                   ? (wallets[selectedId]?.cash || 0).toFixed(2) + " $"
                   : "$"
               }
-              icon="/assets/wallet.svg"
+              icon="/assets/wallet.svg" 
             />
           </div>
           <div className={homeStyles.titleContainer}>

@@ -69,15 +69,17 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>InvestTrade - Connexion</title>
+        <title>InvestDays - Connexion</title>
         <meta name="description" content="Page d'accueil" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon3.ico" />
+        <link rel="icondocker-compose down
+docker-compose up --build
+" href="/favicon3.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={loginStyles.container}>
           <div className={loginStyles.imageDessus}>
-            <Image src="/assets/logo.webp" width={200} alt="logo" />
+            <Image src="/assets/INVEST.png" width={300} height={500} alt="logo" />
           </div>
           <div
             className={`${loginStyles.main} ${
