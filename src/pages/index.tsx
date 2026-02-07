@@ -46,7 +46,7 @@ export default function Home() {
         <title>InvestDays - Home</title>
         <meta name="description" content="Page d'accueil" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon2.ico" />
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={homeStyles.headerContainer}>

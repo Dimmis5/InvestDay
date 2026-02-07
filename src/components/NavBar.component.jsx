@@ -25,7 +25,7 @@ function Navbar() {
       <div className={navBarStyles.logoSection}>
         <div className={navBarStyles.logoContainer}>
           <Link id="logo-click" href={"/"}>
-            <Image src="/assets/logo.webp" width={100} alt="logo" priority />
+            <Image src="/assets/INVEST.png" width={100} alt="logo" priority />
           </Link>
         </div>
 

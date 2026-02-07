@@ -64,7 +64,7 @@ export default function Login() {
         <title>InvestTrade - Reinitialisation password</title>
         <meta name="description" content="Page d'accueil" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={loginStyles.container}>
