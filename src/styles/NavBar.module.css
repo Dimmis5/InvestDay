@@ -207,3 +207,31 @@
     margin: 0 auto;
   }
 }
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 100%;
+}
+
+.separator {
+  color: #ccc;
+  font-size: 2.2rem; /* Augmente la taille du trait vertical */
+  font-weight: 200;  /* Garde un trait fin et élégant */
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.userEmail {
+  color: #333;
+  font-size: 1rem;
+  font-weight: 500;
+  padding-top: 2px; /* Ajustement visuel pour l'alignement */
+}
