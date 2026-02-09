@@ -79,3 +79,21 @@
     border-bottom: 0;
   }
 }
+
+/* LE BOUTON JAUNE ET ARRONDI */
+.sellButton {
+  background-color: #f3ca3e; /* Ton jaune */
+  color: #1a1a1a;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px; /* Bords bien arrondis */
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.sellButton:hover {
+  background-color: #e2ba2d;
+  transform: translateY(-1px);
+}

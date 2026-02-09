@@ -3,17 +3,16 @@ import TableTransactionStyles from "../styles/TableTransaction.module.css";
 import { useFetch } from "../context/FetchContext.js";
 import { useWallet } from "../context/WalletContext";
 import Popup from "./Popup.component";
-import Button from "../components/Button.component";
+
 function TableWallet({ selectedId, activeWalletTransactions }) {
-  const fetch = useFetch();
   const [symbol, setSymbol] = useState("");
   const [maxCount, setMaxCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const { walletsLines, actualiseWalletsLines, valuesCached } = useWallet();
+
   useEffect(() => {
     if (!(walletsLines && walletsLines[selectedId])) actualiseWalletsLines();
   }, [activeWalletTransactions]);
-  function openPopUp() { }
 
   return (
     <>
@@ -27,7 +26,6 @@ function TableWallet({ selectedId, activeWalletTransactions }) {
             <th className={TableTransactionStyles.th}>Var $</th>
             <th className={TableTransactionStyles.th}>Var %</th>
             <th className={TableTransactionStyles.th}>Gain</th>
-
             <th className={TableTransactionStyles.th}>Action</th>
           </tr>
         </thead>
@@ -36,8 +34,7 @@ function TableWallet({ selectedId, activeWalletTransactions }) {
             walletsLines[selectedId] &&
             walletsLines[selectedId].map((item, index) => {
               let value = valuesCached?.[item.symbol]?.value;
-              if (value == null) return <></>;
-              // averagePriceAtExecution
+              if (value == null) return null;
 
               let quantityBuy = 0;
               let averagePriceAtExecution = item.valueAtExecution.reduce(
@@ -49,67 +46,44 @@ function TableWallet({ selectedId, activeWalletTransactions }) {
               );
               averagePriceAtExecution = averagePriceAtExecution / quantityBuy;
 
+              const variation = value - averagePriceAtExecution;
+              const isPositive = variation >= 0;
+
               return (
                 <tr key={index} className={TableTransactionStyles.tr}>
-                  <td
-                    data-label="Libellé"
-                    className={TableTransactionStyles.td}
-                  >
+                  <td data-label="Libellé" className={TableTransactionStyles.td} style={{fontWeight: 'bold'}}>
                     {item?.symbol}
                   </td>
-                  <td
-                    data-label="Quantité"
-                    className={TableTransactionStyles.td}
-                  >
+                  <td data-label="Quantité" className={TableTransactionStyles.td}>
                     {item?.quantity?.toFixed(2)}
                   </td>
-                  <td
-                    data-label="Val moyenne Achat"
-                    className={TableTransactionStyles.td}
-                  >
+                  <td data-label="Valeur Achat" className={TableTransactionStyles.td}>
                     {averagePriceAtExecution?.toFixed(2)} $
                   </td>
-                  <td
-                    data-label="Val Actuelle"
-                    className={TableTransactionStyles.td}
-                  >
+                  <td data-label="Valeur Actuelle" className={TableTransactionStyles.td}>
                     {value?.toFixed(2)} $
                   </td>
-
-                  <td
-                    data-label="Var moyenne $"
-                    className={TableTransactionStyles.td}
-                  >
-                    {(value - averagePriceAtExecution)?.toFixed(2)} $
+                  <td data-label="Var $" className={TableTransactionStyles.td} style={{ color: isPositive ? '#2ecc71' : '#e74c3c' }}>
+                    {isPositive ? '+' : ''}{variation.toFixed(2)} $
                   </td>
-                  <td
-                    data-label="Var moyenne %"
-                    className={TableTransactionStyles.td}
-                  >
-                    {averagePriceAtExecution
-                      ? (
-                        ((value - averagePriceAtExecution) /
-                          averagePriceAtExecution) *
-                        100
-                      ).toFixed(2)
-                      : "-"}{" "}
-                    %
+                  <td data-label="Var %" className={TableTransactionStyles.td} style={{ color: isPositive ? '#2ecc71' : '#e74c3c' }}>
+                    {averagePriceAtExecution ? (variation / averagePriceAtExecution * 100).toFixed(2) : "0.00"} %
                   </td>
-                  <td
-                    data-label="Gain éstimé"
-                    className={TableTransactionStyles.td}
-                  >
-                    {(
-                      (value - averagePriceAtExecution) *
-                      item.quantity
-                    ).toFixed(2)}{" "}
-                    $
+                  <td data-label="Gain" className={TableTransactionStyles.td} style={{fontWeight: 'bold'}}>
+                    {(variation * item.quantity).toFixed(2)} $
                   </td>
                   <td data-label="Action" className={TableTransactionStyles.td}>
-                    <Button
-                      title={"Vendre"}
-                      onClick={() => { setIsOpen(!isOpen); setSymbol(item.symbol); setMaxCount(item.quantity) }}
-                    />
+                    {/* BOUTON MODIFIÉ ICI */}
+                    <button 
+                      className={TableTransactionStyles.sellButton}
+                      onClick={() => { 
+                        setIsOpen(true); 
+                        setSymbol(item.symbol); 
+                        setMaxCount(item.quantity); 
+                      }}
+                    >
+                      Vendre
+                    </button>
                   </td>
                 </tr>
               );
@@ -118,13 +92,12 @@ function TableWallet({ selectedId, activeWalletTransactions }) {
       </table>
       <Popup
         title="Vendre"
-        subtitle="Quantité"
+        subtitle={`Vendre ${symbol}`}
         sell={true}
         symbol={symbol}
         maxCount={maxCount}
-        openDefault={isOpen}
         open={isOpen}
-        close = {() => setIsOpen(false)}
+        close={() => setIsOpen(false)}
       />
     </>
   );

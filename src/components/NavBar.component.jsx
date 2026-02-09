@@ -1,19 +1,16 @@
 import React, { useState } from "react";
 import navBarStyles from "../styles/NavBar.module.css";
 import NavTab from "./NavTab.component";
-//import logo from "src/public/assets/logo.webp";
 import { useAuthentification } from "../context/AuthContext";
+import { useWallet } from "../context/WalletContext"; // Import nécessaire pour le changement de portfolio
 import Image from "next/image";
 import Link from "next/link";
 
 function Navbar() {
   const { logout, user } = useAuthentification();
-  const [active, setActive] = useState("l1");
+  const { wallets, selectedId, selectWallet } = useWallet(); // Récupération de l'état global du wallet
+  const [active, setActive] = useState("accueil");
   const [menu, setMenu] = useState(false);
-
-  function handleToggle(state) {
-    setActive(state);
-  }
 
   function toggleMenu() {
     setMenu((prevState) => !prevState);
@@ -21,51 +18,72 @@ function Navbar() {
 
   return (
     <nav className={navBarStyles.navBarContainer}>
-      {/* SECTION GAUCHE : Logo et Identification */}
+      {/* SECTION GAUCHE : Logo */}
       <div className={navBarStyles.logoSection}>
         <div className={navBarStyles.logoContainer}>
-          <Link id="logo-click" href={"/"}>
-            <Image src="/assets/INVEST.png" width={100} height={150} alt="logo" priority />
+          <Link href={"/"}>
+            <Image 
+              src="/assets/INVEST.png" 
+              width={100} 
+              height={150} 
+              alt="logo" 
+              priority 
+            />
           </Link>
         </div>
-
-        {user && (
-          <div className={navBarStyles.userEmailLeft}>
-            {user.email}
-          </div>
-        )}
       </div>
+
+      {/* SECTION CENTRALE : Sélecteur de Portfolio (Fidèle à Figma) */}
+      {user && wallets && (
+        <div className={navBarStyles.centerSection}>
+          <div className={navBarStyles.portfolioBadge}>
+            <span className={navBarStyles.walletIcon}>📁</span>
+            <span className={navBarStyles.portfolioTitle}>Portfolio n°{selectedId + 1}</span>
+            <div className={navBarStyles.miniSelector}>
+              {wallets.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => selectWallet(index)}
+                  className={selectedId === index ? navBarStyles.miniBtnActive : navBarStyles.miniBtn}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SECTION DROITE : Menu de navigation */}
       <ul
         className={`${navBarStyles.navButtonContainer} ${
           menu ? navBarStyles.isActived : ""
         }`}
-        onClick={toggleMenu}
+        onClick={() => setMenu(false)}
       >
         <NavTab
-          handleToggle={handleToggle}
+          handleToggle={setActive}
           active={active}
           id="accueil"
           title="Accueil"
           to="/"
         />
         <NavTab
-          handleToggle={handleToggle}
-          active={active}
-          id="wallet"
-          title="Portefeuille"
-          to="/wallet"
+        handleToggle={setActive}
+        active={active}
+        id="wallet"
+        title="Portefeuille"
+        to="/wallet"
         />
         <NavTab
-          handleToggle={handleToggle}
+          handleToggle={setActive}
           active={active}
           id="market"
           title="Marchés"
           to="/market"
         />
         <NavTab
-          handleToggle={handleToggle}
+          handleToggle={setActive}
           active={active}
           id="ranking"
           title="Classement"

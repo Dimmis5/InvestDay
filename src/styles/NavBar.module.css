@@ -7,7 +7,7 @@
   display: flex;
   justify-content: space-between; /* Pousse logoSection à gauche et navButtonContainer à droite */
   align-items: center;
-  background-color: white;
+  background-color: #fdfbf1;
   position: relative;
 }
 
@@ -143,5 +143,67 @@
 
   .change .menuLine3 {
     transform: translateY(-6px) rotate(45deg);
+  }
+}
+
+
+.centerSection {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.portfolioBadge {
+  background: #fffbe6; /* Jaune pâle */
+  border: 1px solid #ffe58f;
+  padding: 6px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.miniSelector {
+  display: flex;
+  gap: 5px;
+  margin-left: 5px;
+  border-left: 1px solid #ffe58f;
+  padding-left: 10px;
+}
+
+.miniBtn, .miniBtnActive {
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.miniBtn {
+  background: transparent;
+  color: #888;
+}
+
+.miniBtnActive {
+  background: #f3ca3e; /* Jaune vif */
+  color: #000;
+  font-weight: bold;
+}
+
+/* Masquer le badge sur mobile si l'espace manque */
+@media (max-width: 900px) {
+  .centerSection {
+    position: static;
+    transform: none;
+    margin: 0 auto;
   }
 }

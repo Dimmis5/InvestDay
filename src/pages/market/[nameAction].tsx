@@ -16,13 +16,6 @@ import HighchartsReact from "highcharts-react-official";
 import { useAuthentification } from "../../context/AuthContext";
 import Button from "../../components/Button.component";
 
-// Importer dynamiquement les modules d'exportation
-import("highcharts/modules/exporting" as any).then(({ default: HighchartsExporting }) => {
-  if (typeof Highcharts === "object") {
-    HighchartsExporting(Highcharts);
-  }
-});
-
 export default function DetailAction(req: Request) {
   const [logo, setLogo] = useState("");
   const [data, setData] = useState([] as any);
@@ -30,6 +23,7 @@ export default function DetailAction(req: Request) {
   const [symbol, setSymbol] = useState("");
   const [maxCount, setMaxCount] = useState(0);
   const [detail, setDetail] = useState({} as any);
+  const [chartReady, setChartReady] = useState(false);
   const { user, isAuthenticated } = useAuthentification();
   const [dataCleaned, setDataCleaned] = useState({
     name: "-",
@@ -37,16 +31,38 @@ export default function DetailAction(req: Request) {
     number: "-",
     prix: "-",
   });
+  
+  // Charger le module d'exportation
+  useEffect(() => {
+    const loadExporting = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const exportingModule = await import("highcharts/modules/exporting");
+          // Appeler la fonction d'initialisation en utilisant any pour éviter l'erreur TypeScript
+          (exportingModule.default as any)(Highcharts);
+          setChartReady(true);
+        } catch (err) {
+          console.log("Module exporting non chargé:", err);
+          // Le graphique fonctionnera quand même sans le module d'exportation
+          setChartReady(true);
+        }
+      }
+    };
+    
+    loadExporting();
+  }, []);
+  
   const router = useRouter();
   const { wallets, selectedId, selectWallet, assetsCached, getPrice } =
     useWallet();
   const { nameAction } = router.query;
+  
   var floor = Math.floor,
     abs = Math.abs,
     log = Math.log,
     round = Math.round,
     min = Math.min;
-  var abbrev = ["K", "M", "B"]; // abbreviations in steps of 1000x; extensible if need to edit
+  var abbrev = ["K", "M", "B"];
 
   function rnd(n: number, precision: number) {
     var prec = 10 ** precision;
@@ -77,7 +93,6 @@ export default function DetailAction(req: Request) {
 
   async function fetchLogo(url: string) {
     const logo = await fetch.get("/api/stock/getLogo?url=" + url, true);
-
     setLogo(logo);
   }
 
@@ -102,7 +117,6 @@ export default function DetailAction(req: Request) {
       });
     }
   }, [detail]);
-  //check if details is not undefined
 
   function fetchData(symbol: string, time: string) {
     return fetch
@@ -118,26 +132,22 @@ export default function DetailAction(req: Request) {
 
   let options = {};
 
-  //check if data["queryCount"] is defined and if it is gretaer than 0 (not empty)
   if (typeof data["queryCount"] !== "undefined" && data["queryCount"] > 0) {
     var donneesFinancieres;
     donneesFinancieres = data["results"];
     let list = [] as any;
 
-    // check if donneesFinancieres is defined and if length is greater than 0 (not empty)
     if (
       typeof donneesFinancieres !== "undefined" &&
       donneesFinancieres.length > 0
     ) {
       for (let i = 0; i < donneesFinancieres.length; i++) {
-        // put in the list an array with the values of t and c
         list.push([donneesFinancieres[i].t, donneesFinancieres[i].c]);
       }
     }
 
     options = {
       chart: {
-        //width: 800,
         height: 600,
       },
       title: {
@@ -193,8 +203,6 @@ export default function DetailAction(req: Request) {
             <InfoBox
               title={`Cash portefeuille n°${selectedId + 1}`}
               desc={
-                //check if wallets is not undefined and if it is not empty and if not, then return the cash of the selected wallet
-
                 typeof wallets !== "undefined" && wallets.length > 0
                   ? (wallets[selectedId]?.cash || 0).toFixed(2) + " $"
                   : "$"
@@ -215,23 +223,6 @@ export default function DetailAction(req: Request) {
         <div className={homeStyles.chartContainer}>
           <div className={homeStyles.chartHeaderContainer}>
             <div className={homeStyles.logoName}>
-              {/* {typeof logo !== "undefined" && logo.length > 0 ? (
-                <>
-                  <Image
-                    src={`data:image/svg+xml${logo}`}
-                    width={50}
-                    height={50}
-                    alt={""}
-                  ></Image>
-                  <div
-                    className={homeStyles.logoView}
-                    dangerouslySetInnerHTML={{ __html: logo }}
-                    style={{ backgroundColor: "red" }}
-                  ></div>
-                </>
-              ) : (
-                ""
-              )} */}
               <h1>{dataCleaned.name}</h1>
             </div>
             <div>
@@ -239,12 +230,14 @@ export default function DetailAction(req: Request) {
             </div>
           </div>
           <div className={homeStyles.plotContainer}>
-            <HighchartsReact
-              containerProps={{ style: { width: "90%" } }}
-              highcharts={Highcharts}
-              constructorType={"stockChart"}
-              options={options}
-            />
+            {chartReady && (
+              <HighchartsReact
+                containerProps={{ style: { width: "90%" } }}
+                highcharts={Highcharts}
+                constructorType={"stockChart"}
+                options={options}
+              />
+            )}
           </div>
 
           <div className={homeStyles.buyContainer}>

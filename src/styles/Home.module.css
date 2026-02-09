@@ -1,113 +1,167 @@
 .pageContainer {
-  margin-inline: 5%;
+  padding: 20px 8%;
+  background-color: #fdfbf1; /* Fond de l'image */
+  min-height: 100vh;
 }
 
-.headerContainer {
-  margin-top: 40px;
+.marketHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 50px;
 }
 
-.headerContainer h1 {
-  font-family: "Inter";
-  font-style: normal;
+/* Onglets de navigation en haut */
+.navTabActive {
+  background: var(--premier); /* Jaune #f3ca3e */
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 20px;
-  line-height: 100%;
-  letter-spacing: -0.03em;
-  color: #333333;
+  margin-right: 15px;
 }
 
-.tableContainer {
-  margin-top: 20px;
+.navTab {
+  background: transparent;
+  border: none;
+  color: #888;
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.portfolioBadge {
+  background: #fffbe6; /* Jaune très clair */
+  border: 1px solid #ffe58f;
+  padding: 8px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+/* Grille de cartes */
+.assetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.assetCard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.2s;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 20px;
 }
 
-.infoBoxContainer {
+.symbol {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.performanceBadge {
+  background: #e6f9f1; /* Vert clair */
+  color: #2ecc71;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.price {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.todayChange {
+  color: #2ecc71;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* Bouton Buy Jaune */
+.buyButton {
+  width: 100%;
+  background-color: var(--premier); /* Jaune f3ca3e */
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Conteneur de la barre de filtres */
+.filterBar {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  gap: 20px;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap; /* Pour que les boutons passent à la ligne sur mobile */
 }
 
-@media screen and (max-width: 750px) {
-  .infoBoxContainer {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
+/* Style commun pour tous les boutons de filtres */
+.filterActive, .filterItem {
+  padding: 10px 22px;
+  border-radius: 12px; /* Même arrondi que le bouton Buy */
+  font-weight: 700;    /* Texte gras pour l'aspect financier */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
-@media screen and (max-width: 450px) {
-  .headerContainer {
-    flex-direction: column;
-  }
+/* Le bouton actif : Exactement comme le bouton Buy */
+.filterActive {
+  background-color: var(--premier); /* Jaune #f3ca3e */
+  color: #000;
+  border: none;
+  box-shadow: 0 4px 10px rgba(243, 202, 62, 0.2);
 }
 
-.titleContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* Les boutons inactifs : Fond blanc, bordure jaune */
+.filterItem {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 2px solid var(--premier); /* Rappel du jaune sur les contours */
 }
 
-/*center chartContainer*/
-.chartContainer {
-  margin-top: 20px;
-  width: 90%;
+/* Effet au survol pour les boutons inactifs */
+.filterItem:hover {
+  background-color: #fffbe6; /* Un jaune très léger au survol */
+  transform: translateY(-2px);
+}
+
+
+.welcomeSection {
+  background-color: var(--premier); /* Le jaune #f3ca3e de l'image */
+  padding: 30px;
+  border-radius: 12px; /* Coins arrondis comme sur le bouton Buy */
+  margin-bottom: 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0 !important;
+  gap: 5px;
+  box-shadow: 0 4px 15px rgba(243, 202, 62, 0.15); /* Optionnel : légère ombre portée */
 }
 
-.chartHeaderContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 90%;
+.marketTitle {
+  font-size: 28px;
+  font-weight: 800; /* Très gras comme le texte "Buy" */
+  color: #000;      /* Texte noir sur fond jaune pour le contraste */
+  margin: 0;
 }
 
-.plotContainer {
-  width: 90%;
-  display: flex;
-  justify-content: center;
-}
-
-.buyContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  text-align: center;
-}
-
-.priceText {
-  font-size: 2rem;
-}
-
-.logoName {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
-.logoView {
-  width: 100px;
-  height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/*make all svg look the same size dynamically*/
-.logoview svg {
-  width: 100%;
-  height: 100%;
-  max-width: 20%;
-  max-height: 20%;
-  object-fit: contain;
-  preserveaspectratio: none;
+.marketSub {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;      /* Un gris très foncé pour rester lisible sur le jaune */
+  margin: 0;
+  opacity: 0.9;
 }
