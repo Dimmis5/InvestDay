@@ -97,3 +97,33 @@
   background-color: #e2ba2d;
   transform: translateY(-1px);
 }
+
+/* Style de base pour toutes les lignes */
+.tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+/* Mise en avant du TOP 3 */
+.goldRow {
+  background-color: rgba(255, 215, 0, 0.05); /* Jaune très léger */
+  border: 2px solid #FFD700 !important;
+  border-radius: 8px;
+}
+
+.silverRow {
+  background-color: rgba(192, 192, 192, 0.05); /* Argent très léger */
+  border-left: 4px solid #C0C0C0;
+}
+
+.bronzeRow {
+  background-color: rgba(205, 127, 50, 0.05); /* Bronze très léger */
+  border-left: 4px solid #CD7F32;
+}
+
+/* Optionnel : effet au survol */
+.tr:hover {
+  background-color: #fff9e6;
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}

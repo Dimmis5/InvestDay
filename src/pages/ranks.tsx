@@ -1,84 +1,63 @@
 import Head from "next/head";
-import { Inter } from "next/font/google";
 import homeStyles from "../styles/Home.module.css";
 import TableRanks from "../components/TableRanks.component.jsx";
 import DashBoardLayout from "../components/layouts/DashBoard.layout";
 import { AppProps } from "next/app";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useFetch } from "../context/FetchContext";
-import { toast } from "react-toastify";
-
-const inter = Inter({ subsets: ["latin"] });
+import { useWallet } from "../context/WalletContext";
+import { useAuthentification } from "../context/AuthContext";
 
 export default function Ranks() {
-  const [dataRanks, setDataRanks] = useState([
-    {
-      id: 0,
-      createdAt: "2023-02-09T12:32:27.118Z",
-      userId: 0,
-      cash: 0,
-      publicWalletValue: 0,
-      datePublicUpdated: "2023-02-11T14:46:02.497Z",
-      lastUpdatedValue: 0,
-      dateLastUpdated: "2023-02-11T14:46:02.497Z",
-      user: {
-        id: 0,
-        email: "admin@eleve.isep.fr",
-        name: "admin",
-        isAdmin: false,
-      },
-    },
-  ]);
-
-  const [dataRanksShown, setDataRanksShown] = useState([] as any);
-
+  const [dataRanks, setDataRanks] = useState<any[]>([]); 
+  const { assetsCached } = useWallet();
+  const { user } = useAuthentification();
   const fetch = useFetch();
 
-  function fetchRanks() {
-    return fetch
-      .get("/api/wallet/rank")
-      .then((response) => {
-        return response;
-      })
-      .then((data) => {
-        setDataRanksShown(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-
   useEffect(() => {
-    setDataRanksShown(dataRanks);
-    fetchRanks();
-    toast.info(
-      "Le classement à été mis à jour le 12 mars, viens à l'InvestDay pour découvrir ta position finale !"
-    );
+    fetch.get("/api/wallet/rank")
+      .then((data) => setDataRanks(data))
+      .catch((err) => console.error("Erreur API:", err));
   }, []);
+
+  const myPerformance = useMemo(() => {
+    if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
+
+    // Tri strict sur publicWalletValue
+    const sortedData = [...dataRanks]
+      .filter((item: any) => item?.user?.isAdmin === false)
+      .sort((a: any, b: any) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
+
+    // Correction de l'erreur .id avec un cast explicite (sortedData as any[])
+    const myIndex = (sortedData as any[]).findIndex((item: any) => item?.user?.id === (user as any)?.id);
+    
+    if (myIndex === -1) return null;
+
+    const myData = sortedData[myIndex];
+    const startingCash = 10000; 
+    const currentVal = Number(myData.publicWalletValue) || 0;
+
+    return {
+      rank: myIndex + 1,
+      total: currentVal,
+      profit: currentVal - startingCash,
+      percent: ((currentVal - startingCash) / startingCash) * 100
+    };
+  }, [dataRanks, user]);
 
   return (
     <>
-      <Head>
-        <title>InvestTrade - Home</title>
-        <meta name="description" content="Page d'accueil" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon3.ico" />
-      </Head>
+      <Head><title>InvestDays - Classement Global</title></Head>
       <main className={homeStyles.pageContainer}>
-        <div className={homeStyles.headerContainer}>
-          <h1>Classement</h1>
-        </div>
 
-        <div className={homeStyles.contentContainer}>
-          <div className={homeStyles.tableContainer}>
-            <TableRanks data={dataRanksShown} />
-          </div>
+        <div className={homeStyles.assetCard} style={{ marginTop: '40px', padding: '30px' }}>
+          <h3 style={{ marginBottom: '25px', fontWeight: '700' }}>Top Traders</h3>
+          {/* On passe tout le tableau sans slice pour voir tous les wallets */}
+          <TableRanks data={dataRanks as any} />
         </div>
       </main>
     </>
   );
 }
 
-Ranks.getLayout = function getLayout(page: AppProps) {
-  return <DashBoardLayout>{page}</DashBoardLayout>;
-};
+Ranks.getLayout = (page: AppProps) => <DashBoardLayout>{page}</DashBoardLayout>;

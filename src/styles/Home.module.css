@@ -165,3 +165,68 @@
   margin: 0;
   opacity: 0.9;
 }
+
+/* Card Performance Personnelle */
+.performanceCard {
+  background: white;
+  border: 1px solid #f3ca3e; /* Bordure jaune fine conforme au thème */
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.perfHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.perfTitle { 
+  font-weight: 700; 
+  font-size: 1.1rem;
+  color: #1a1a1a; 
+}
+
+.rankBadge {
+  background: #fdf5d7; /* Fond jaune très clair */
+  color: #a38100;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1px solid #f3ca3e;
+}
+
+.perfGrid {
+  display: flex;
+  gap: 80px; /* Grand espacement entre les statistiques */
+}
+
+.perfItem label {
+  display: block;
+  color: #888;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.perfValue {
+  font-size: 1.8rem; /* Valeurs numériques très lisibles */
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+/* Badge Trophée */
+.rankIconBadge {
+  background: #f3ca3e;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 12px rgba(243, 202, 62, 0.3);
+}
