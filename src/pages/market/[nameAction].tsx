@@ -7,266 +7,176 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useFetch } from "../../context/FetchContext.js";
 import Popup from "../../components/Popup.component.jsx";
-import jwt from "jsonwebtoken";
 import { Request } from "../../types/request.type";
-import InfoBox from "../../components/InfoBox.component";
 import { useWallet } from "../../context/WalletContext";
 import Highcharts from "highcharts/highstock";
 import HighchartsReact from "highcharts-react-official";
 import { useAuthentification } from "../../context/AuthContext";
-import Button from "../../components/Button.component";
 
 export default function DetailAction(req: Request) {
   const [logo, setLogo] = useState("");
   const [data, setData] = useState([] as any);
   const [isOpen, setIsOpen] = useState(false);
   const [symbol, setSymbol] = useState("");
-  const [maxCount, setMaxCount] = useState(0);
   const [detail, setDetail] = useState({} as any);
   const [chartReady, setChartReady] = useState(false);
   const { user, isAuthenticated } = useAuthentification();
+  const { wallets, selectedId, getPrice } = useWallet();
+  const router = useRouter();
+  const { nameAction } = router.query;
+  const fetch = useFetch();
+
   const [dataCleaned, setDataCleaned] = useState({
     name: "-",
     market_cap: "-",
     number: "-",
-    prix: "-",
   });
-  
-  // Charger le module d'exportation
+
+  // Charger Highcharts Exporting
   useEffect(() => {
     const loadExporting = async () => {
       if (typeof window !== "undefined") {
         try {
           const exportingModule = await import("highcharts/modules/exporting");
-          // Appeler la fonction d'initialisation en utilisant any pour éviter l'erreur TypeScript
           (exportingModule.default as any)(Highcharts);
           setChartReady(true);
         } catch (err) {
-          console.log("Module exporting non chargé:", err);
-          // Le graphique fonctionnera quand même sans le module d'exportation
           setChartReady(true);
         }
       }
     };
-    
     loadExporting();
   }, []);
-  
-  const router = useRouter();
-  const { wallets, selectedId, selectWallet, assetsCached, getPrice } =
-    useWallet();
-  const { nameAction } = router.query;
-  
-  var floor = Math.floor,
-    abs = Math.abs,
-    log = Math.log,
-    round = Math.round,
-    min = Math.min;
-  var abbrev = ["K", "M", "B"];
 
-  function rnd(n: number, precision: number) {
-    var prec = 10 ** precision;
-    return round(n * prec) / prec;
+  // Formatage des grands nombres (K, M, B)
+  function format(n: any) {
+    if (!n || isNaN(n)) return "-";
+    const num = Number(n);
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + " B";
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + " M";
+    if (num >= 1000) return (num / 1000).toFixed(2) + " K";
+    return num.toString();
   }
-
-  function format(n: number) {
-    var base = floor(log(abs(n)) / log(1000));
-    var suffix = abbrev[min(abbrev.length - 1, base - 1)];
-    base = abbrev.indexOf(suffix) + 1;
-    return suffix ? rnd(n / 1000 ** base, 2) + suffix : "" + n;
-  }
-
-  const fetch = useFetch();
 
   async function fetchDetail(symbol: string) {
     try {
       const response = await fetch.get("/api/stock/detail?symbol=" + symbol);
-      let data = response;
-      let urlToPass = data["results"]?.branding?.logo_url;
-      fetchLogo(urlToPass);
       const price = await getPrice(symbol);
-      return setDetail({ ...data["results"], price });
+      setDetail({ ...response.results, price });
+      if (response.results?.branding?.logo_url) {
+        fetchLogo(response.results.branding.logo_url);
+      }
     } catch (error) {
       console.log(error);
     }
   }
 
   async function fetchLogo(url: string) {
-    const logo = await fetch.get("/api/stock/getLogo?url=" + url, true);
-    setLogo(logo);
+    const logoData = await fetch.get("/api/stock/getLogo?url=" + url, true);
+    setLogo(logoData);
   }
 
-  useEffect(() => {
-    if (!detail) return;
-
-    if (detail[0]) {
-      setDataCleaned({
-        name: detail[0].name,
-        market_cap: "",
-        number: "",
-        prix: String(detail[0].price),
-      });
-    } else {
-      setDataCleaned({
-        name: detail.name,
-        market_cap: format(detail.market_cap),
-        number: format(detail.weighted_shares_outstanding),
-        prix: String(
-          (Number(detail.market_cap) / Number(detail.number)).toFixed(2)
-        ),
-      });
-    }
-  }, [detail]);
-
-  function fetchData(symbol: string, time: string) {
-    return fetch
-      .get("/api/stock/info?symbol=" + symbol)
-      .then((response) => {
-        return response;
-      })
-      .then((data) => setData(data))
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-
-  let options = {};
-
-  if (typeof data["queryCount"] !== "undefined" && data["queryCount"] > 0) {
-    var donneesFinancieres;
-    donneesFinancieres = data["results"];
-    let list = [] as any;
-
-    if (
-      typeof donneesFinancieres !== "undefined" &&
-      donneesFinancieres.length > 0
-    ) {
-      for (let i = 0; i < donneesFinancieres.length; i++) {
-        list.push([donneesFinancieres[i].t, donneesFinancieres[i].c]);
-      }
-    }
-
-    options = {
-      chart: {
-        height: 600,
-      },
-      title: {
-        text: "Graphique : " + nameAction,
-      },
-      series: [
-        {
-          data: list,
-          name: "prix",
-        },
-      ],
-      responsive: {
-        rules: [
-          {
-            condition: {
-              maxWidth: 500,
-            },
-            chartOptions: {
-              chart: {
-                height: 300,
-              },
-              subtitle: {
-                text: null,
-              },
-              navigator: {
-                enabled: false,
-              },
-            },
-          },
-        ],
-      },
-    };
+  function fetchData(symbol: string) {
+    fetch.get("/api/stock/info?symbol=" + symbol)
+      .then((res) => setData(res))
+      .catch((err) => console.log(err));
   }
 
   useEffect(() => {
     if (user && isAuthenticated && nameAction) {
-      fetchData(nameAction as string, "1d");
+      fetchData(nameAction as string);
       fetchDetail(nameAction as string);
     }
-  }, [router, isAuthenticated, user]);
+  }, [nameAction, isAuthenticated, user]);
+
+  useEffect(() => {
+    if (detail) {
+      setDataCleaned({
+        name: detail.name || nameAction,
+        market_cap: detail.market_cap,
+        number: detail.weighted_shares_outstanding,
+      });
+    }
+  }, [detail]);
+
+  // Options du graphique
+  let options = {
+    chart: { height: 500, backgroundColor: 'transparent' },
+    rangeSelector: { enabled: true },
+    title: { text: null },
+    series: [{
+      name: nameAction,
+      data: data.results?.map((i: any) => [i.t, i.c]) || [],
+      color: '#f3ca3e',
+      tooltip: { valueDecimals: 2 }
+    }]
+  };
 
   return (
     <>
       <Head>
-        <title>InvestTrade - Home</title>
-        <meta name="description" content="Page d'accueil" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon3.ico" />
+        <title>InvestDays - {nameAction}</title>
       </Head>
+
       <main className={homeStyles.pageContainer}>
-        <div className={homeStyles.headerContainer}>
-          <div className={homeStyles.infoBoxContainer}>
-            <InfoBox
-              title={`Cash portefeuille n°${selectedId + 1}`}
-              desc={
-                typeof wallets !== "undefined" && wallets.length > 0
-                  ? (wallets[selectedId]?.cash || 0).toFixed(2) + " $"
-                  : "$"
-              }
-              icon="/assets/wallet.svg" 
-            />
-          </div>
-          <div className={homeStyles.titleContainer}>
-            <Button
-              title={"Acheter"}
-              onClick={() => {
-                setIsOpen(!isOpen);
-                setSymbol(nameAction as string);
-              }}
-            />
-          </div>
-        </div>
-        <div className={homeStyles.chartContainer}>
-          <div className={homeStyles.chartHeaderContainer}>
-            <div className={homeStyles.logoName}>
-              <h1>{dataCleaned.name}</h1>
-            </div>
-            <div>
-              <p className={homeStyles.priceText}>{detail.price}$</p>
-            </div>
-          </div>
-          <div className={homeStyles.plotContainer}>
-            {chartReady && (
-              <HighchartsReact
-                containerProps={{ style: { width: "90%" } }}
-                highcharts={Highcharts}
-                constructorType={"stockChart"}
-                options={options}
-              />
-            )}
+        {/* HEADER : Titre, Prix et Actions */}
+        <div className={homeStyles.marketHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+             <div>
+                <h1 className={homeStyles.marketTitle}>{dataCleaned.name}</h1>
+                <p className={homeStyles.marketSub}>{nameAction} • {detail.price?.toFixed(2)}$</p>
+             </div>
           </div>
 
-          <div className={homeStyles.buyContainer}>
-            <p>
-              {dataCleaned.market_cap && dataCleaned.market_cap !== undefined
-                ? "Capitalisation boursière :"
-                : ""}{" "}
-              <br />{" "}
-              {dataCleaned.market_cap && dataCleaned.market_cap !== undefined
-                ? format(dataCleaned.market_cap as unknown as number)
-                : ""}
-            </p>
-            <p>
-              {dataCleaned.number && dataCleaned.number !== undefined
-                ? "Actions en circulations :"
-                : ""}{" "}
-              <br />
-              {dataCleaned.number && dataCleaned.number !== undefined
-                ? format(dataCleaned.number as unknown as number)
-                : ""}
-            </p>
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <div className={homeStyles.statCard} style={{ display: 'flex', alignItems: 'center', padding: '10px 20px' }}>
+              <Image src="/assets/cash.svg" width={25} height={25} alt="cash" style={{ marginRight: '10px' }} />
+              <div>
+                <span style={{ fontSize: '11px', color: '#888', display: 'block' }}>Cash (P.{selectedId + 1})</span>
+                <span style={{ fontWeight: '700' }}>{(wallets[selectedId]?.cash || 0).toFixed(2)} $</span>
+              </div>
+            </div>
+            <button 
+              className={homeStyles.buyButton} 
+              style={{ width: '140px' }} 
+              onClick={() => setIsOpen(true)}
+            >
+              Acheter
+            </button>
           </div>
         </div>
+
+        {/* GRAPHIQUE */}
+        <div className={homeStyles.assetCard} style={{ marginBottom: '30px', padding: '20px' }}>
+          {chartReady && data.results && (
+            <HighchartsReact
+              highcharts={Highcharts}
+              constructorType={"stockChart"}
+              options={options}
+            />
+          )}
+        </div>
+
+        {/* STATISTIQUES EN CARTES */}
+        <div className={homeStyles.summaryGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div className={homeStyles.statCard} style={{ padding: '20px' }}>
+            <span style={{ color: '#888', fontSize: '14px' }}>Capitalisation boursière</span>
+            <div style={{ fontSize: '24px', fontWeight: '800', marginTop: '5px' }}>
+              {format(dataCleaned.market_cap)} $
+            </div>
+          </div>
+          <div className={homeStyles.statCard} style={{ padding: '20px' }}>
+            <span style={{ color: '#888', fontSize: '14px' }}>Actions en circulation</span>
+            <div style={{ fontSize: '24px', fontWeight: '800', marginTop: '5px' }}>
+              {format(dataCleaned.number)}
+            </div>
+          </div>
+        </div>
+
         <Popup
           title="Acheter"
-          subtitle="Achat"
-          maxCount={Number(
-            ((wallets[selectedId]?.cash || 0) / detail.price).toFixed(1)
-          )}
+          subtitle={`Achat d'actions ${nameAction}`}
+          maxCount={detail.price ? Math.floor((wallets[selectedId]?.cash || 0) / detail.price) : 0}
           symbol={nameAction}
           sell={false}
           open={isOpen}

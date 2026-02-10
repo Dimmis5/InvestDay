@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PopupStyles from "../styles/Popup.module.css";
-import { Request } from "../types/request.type";
 import { useFetch } from "../context/FetchContext.js";
-import Button from "../components/Button.component";
 import { useWallet } from "../context/WalletContext";
 import { toast } from "react-toastify";
 
@@ -19,133 +17,133 @@ function Popup({
   const [count, setCount] = useState(0);
   const fetch = useFetch();
 
-  // change the value of the input field when the user clicks on the increase or decrease button and the value is greater than 0
+  // Reset le compteur quand on change d'action ou qu'on ouvre/ferme
+  useEffect(() => {
+    setCount(0);
+  }, [open, symbol]);
 
-  const handleCount = (e) => {
-    let newNum;
-    //check if new value is greater thant maxCount
-    if (e.target.classList.contains(PopupStyles.increase)) {
-      if (count < maxCount) {
-        // check if count +1 is greater than maxCount
-        if (Number(count) + 0.1 > maxCount) {
-          setCount(maxCount);
-          return;
-        } else {
-          newNum = Number(count) + 0.1;
-          setCount(newNum.toFixed(1));
-        }
-      } else {
-        setCount(maxCount);
-      }
-    } else if (e.target.classList.contains(PopupStyles.decrease)) {
-      // if the value is greater than 0, decrease the value
-      if (count > 0 && Number(count) - 0.1 > 0) {
-        newNum = Number(count) - 0.1;
-        setCount(newNum.toFixed(1));
-      } else if (count === 0 || count < 0) {
-        // if the value is 0, do nothing
-        setCount(0);
-      }
-    }
+  // Gestion simplifiée des boutons + et -
+  const increment = () => {
+    setCount(prev => {
+      const nextVal = (Number(prev) + 0.1);
+      return nextVal >= maxCount ? maxCount.toFixed(1) : nextVal.toFixed(1);
+    });
   };
 
-  //on any change in the input field, update the value of the count state
+  const decrement = () => {
+    setCount(prev => {
+      const nextVal = (Number(prev) - 0.1);
+      return nextVal <= 0 ? (0).toFixed(1) : nextVal.toFixed(1);
+    });
+  };
+
+
+  // Gestion sécurisée des boutons + et -
+  // const increment = () => {
+  //   Si maxCount est 0 ou invalide, on met une limite arbitraire pour le test
+  //   const limit = (maxCount > 0) ? maxCount : 9999; 
+    
+  //   setCount(prev => {
+  //     const nextVal = (Number(prev) + 0.1);
+  //     if (nextVal >= limit) return Number(limit).toFixed(1);
+  //     return nextVal.toFixed(1);
+  //   });
+  // };
+
+  // const decrement = () => {
+  //   setCount(prev => {
+  //     const nextVal = (Number(prev) - 0.1);
+  //     if (nextVal <= 0) return (0).toFixed(1);
+  //     return nextVal.toFixed(1);
+  //   });
+  // };
+
   const handleChange = (e) => {
-    let num = Number(e.target.value);
-    // if the value is not a number, do nothing
-    if (isNaN(e.target.value)) {
+    const val = e.target.value;
+    
+    // Autoriser la saisie vide ou le point pour taper des décimales
+    if (val === "") {
+      setCount("");
       return;
     }
-    // if the value is greater than maxCount, set the value to maxCount
-    if (Number(e.target.value) > maxCount) {
+
+    const num = Number(val);
+    if (isNaN(num)) return;
+
+    if (num > maxCount) {
       setCount(maxCount);
+    } else {
+      setCount(val);
+    }
+  };
+
+  const executeOrder = () => {
+    let quantity = Number(count);
+    if (quantity <= 0) {
+      toast.error("Veuillez saisir une quantité.");
       return;
     }
-    setCount(num);
+
+    const payload = {
+      walletId: wallets[selectedId].id,
+      symbol: symbol,
+      amount: quantity.toFixed(1),
+      selling: sell ? "true" : "false",
+    };
+
+    console.log(sell ? "SELLING" : "BUYING", payload);
+    
+    fetch.post("/api/transactions/", payload)
+      .then(() => {
+        toast.success("Votre ordre a été créé !");
+        close();
+      })
+      .catch(() => toast.error("Erreur lors de l'ordre"));
   };
 
-  //create the function that will buy a stock using the api
-  const executeOrder = () => {
-    let quantity = count;
-    if (quantity <= 0) return;
-    if (quantity > maxCount) quantity = maxCount;
-
-    quantity = Number(quantity).toFixed(1);
-    if (sell) {
-      console.log(
-        "SELLING",
-        quantity,
-        "of",
-        symbol,
-        "with wallet",
-        wallets[selectedId].id
-      );
-      fetch.post("/api/transactions/", {
-        walletId: wallets[selectedId].id,
-        symbol: symbol,
-        amount: quantity,
-        selling: "true",
-      });
-    } else {
-      console.log(
-        "BUYING",
-        quantity,
-        "of",
-        symbol,
-        "with wallet",
-        wallets[selectedId].id
-      );
-      fetch.post("/api/transactions/", {
-        walletId: wallets[selectedId].id,
-        symbol: symbol,
-        amount: quantity,
-        selling: "false",
-      });
-    }
-    toast.success("Votre ordre à été créé !");
-
-    //close the popup
-    close();
-  };
+  if (!open) return null;
 
   return (
-    <>
-      {/* <Button
-        title={sell ? "Vendre" : "acheter"}
-        onClick={() => handleOpen()}
-      /> */}
-      {open && (
-        <div className={PopupStyles.modalBackdrop}>
-          <div className={PopupStyles.modal}>
-            <div className={PopupStyles.modalContent}>
-              <div className={PopupStyles.modalTitle}>
-                <h1 className={PopupStyles.modalTitle}>{title} : {symbol}</h1>
-                <span className={PopupStyles.modalSubtitle}>{subtitle}</span>
-              </div>
-
-              <div className={PopupStyles.inputNumberWrapper}>
-                <button className={PopupStyles.decrease} onClick={handleCount}>
-                  -
-                </button>
-                <input type="text" value={count} onChange={handleChange} />
-                <button className={PopupStyles.increase} onClick={handleCount}>
-                  +
-                </button>
-              </div>
-
-              <button
-                className={PopupStyles.buttonBuy}
-                onClick={() => executeOrder()}
-              >
-                {sell ? "Vendre" : "Acheter"}
-              </button>
-            </div>
-
-            <button onClick={() => {close();}}>Close</button>
+    <div className={PopupStyles.modalBackdrop}>
+      <div className={PopupStyles.modal}>
+        <div className={PopupStyles.modalContent}>
+          <div className={PopupStyles.modalTitle}>
+            <h1>{title} : {symbol}</h1>
+            <span className={PopupStyles.modalSubtitle}>{subtitle}</span>
           </div>
+
+          <div className={PopupStyles.inputNumberWrapper}>
+            {/* On retire handleCount au profit de fonctions directes */}
+            <button className={PopupStyles.decrease} onClick={decrement}>
+              -
+            </button>
+            <input 
+              type="number" 
+              step="0.1" 
+              value={count} 
+              onChange={handleChange} 
+              onBlur={() => setCount(Number(count).toFixed(1))} // Formate au clic extérieur
+            />
+            <button className={PopupStyles.increase} onClick={increment}>
+              +
+            </button>
+          </div>
+
+          <button
+            className={PopupStyles.buttonBuy}
+            onClick={executeOrder}
+          >
+            {sell ? "Vendre" : "Acheter"}
+          </button>
         </div>
-      )}
-    </>
+
+        <div className={PopupStyles.modalFooter}>
+          <button className={PopupStyles.closeLink} onClick={close}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
