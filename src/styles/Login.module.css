@@ -135,4 +135,11 @@
   text-align: center;
 }
 
+.imageDessus {
+  display: flex;
+  justify-content: center;
+  margin-bottom: -100px; /* Une marge négative "tire" le bloc suivant vers le haut */
+  position: relative;
+  bottom: 50px; /* Descend l'image de 60px */
+}
 

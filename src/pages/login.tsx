@@ -79,7 +79,7 @@ docker-compose up --build
       <main className={homeStyles.pageContainer}>
         <div className={loginStyles.container}>
           <div className={loginStyles.imageDessus}>
-            <Image src="/assets/INVEST.png" width={200} height={200} alt="logo" />
+            <Image src="/assets/INVEST.png" width={300} height={300} alt="logo" />
           </div>
           <div
             className={`${loginStyles.main} ${
