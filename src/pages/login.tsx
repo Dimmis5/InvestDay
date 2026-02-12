@@ -57,14 +57,14 @@ export default function Login() {
     setError("");
   }
 
-  useEffect(() => {
-    toast.info(
-      "N'hésitez pas à venir le 18 mars à l'InvestDay !"
-    );
-    toast.info(
-      "Remise des récompenses des premiers et spéciaux à l'InvestDay !"
-    );
-  }, []);
+  // useEffect(() => {
+  //   toast.info(
+  //     "N'hésitez pas à venir le 18 mars à l'InvestDay !"
+  //   );
+  //   toast.info(
+  //     "Remise des récompenses des premiers et spéciaux à l'InvestDay !"
+  //   );
+  // }, []);
 
   return (
     <>
