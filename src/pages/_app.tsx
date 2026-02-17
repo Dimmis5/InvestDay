@@ -6,6 +6,7 @@ import { NextPage } from "next";
 import { AuthProvider, ProtectRoute } from "../context/AuthContext";
 import { FetchProvider } from "../context/FetchContext";
 import { WalletProvider } from "../context/WalletContext";
+import { LanguageProvider } from "../context/LanguageContext"; // 1. Import du provider
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,9 +25,12 @@ const App = ({ Component, pageProps }: Props) => {
     <AuthProvider>
       <FetchProvider>
         <WalletProvider>
-          <ToastContainer />
-
-          <ProtectRoute>{getLayout(<Component {...pageProps} />)}</ProtectRoute>
+          <LanguageProvider> 
+            <ToastContainer />
+            <ProtectRoute>
+              {getLayout(<Component {...pageProps} />)}
+            </ProtectRoute>
+          </LanguageProvider>
         </WalletProvider>
       </FetchProvider>
     </AuthProvider>

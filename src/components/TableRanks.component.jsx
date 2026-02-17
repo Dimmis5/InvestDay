@@ -1,24 +1,47 @@
 import React from "react";
 import styles from "../styles/TableTransaction.module.css";
 
-function TableRanks({ data = [], selectedId }) {
+// Ajout de 'lang' dans les props pour la synchronisation globale
+function TableRanks({ data = [], selectedId, lang }) {
+  
+  // Objet de traduction pour le classement
+  const translations = {
+    fr: {
+      rank: "CLASSEMENT",
+      investor: "INVESTISSEUR",
+      cash: "ARGENT DISPONIBLE",
+      id: "PORTEFEUILLE ID",
+      loading: "Chargement des traders..."
+    },
+    en: {
+      rank: "RANKING",
+      investor: "INVESTOR",
+      cash: "AVAILABLE CASH",
+      id: "PORTFOLIO ID",
+      loading: "Loading traders..."
+    }
+  };
+
+  // Sélection de la langue avec sécurité pour le typage
+  const t = translations[lang] || translations.fr;
+
   // TRI SUR LE CASH UNIQUEMENT
   const rankedData = [...data]
     .filter((item) => item?.user?.isAdmin === false)
     .sort((a, b) => (Number(b.cash) || 0) - (Number(a.cash) || 0));
 
   if (!rankedData.length) {
-    return <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>Chargement des traders...</p>;
+    return <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>{t.loading}</p>;
   }
 
   return (
     <table className={styles.transactionTable}>
       <thead>
         <tr className={styles.tr}>
-          <th className={styles.th}>CLASSEMENT</th>
-          <th className={styles.th}>INVESTISSEUR</th>
-          <th className={styles.th}>ARGENT DISPONIBLE</th>
-          <th className={styles.th}>PORTEFEUILLE ID</th>
+          <th className={styles.th}>{t.rank}</th>
+          <th className={styles.th}>{t.investor}</th>
+          <th className={styles.th}>{t.cash}</th>
+          <th className={styles.th}>{t.id}</th>
         </tr>
       </thead>
       <tbody>

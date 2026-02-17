@@ -1,86 +1,90 @@
-import React from "react";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import TableTransactionStyles from "../styles/TableTransaction.module.css";
-function TableTransaction(props) {
-  const fakeData = [
-    {
-      date: "2020-01-01T00:00:00.000Z",
-      action: "AAPL",
-      type: "Achat",
-      price: 90,
-      amount: 20,
-      status: "PENDING",
+
+function TableTransaction({ dataTransactions, lang }) {
+  // Traductions du tableau des transactions
+  const translations = {
+    fr: {
+      date: "Date de la transaction",
+      company: "Société",
+      quantity: "Quantité",
+      value: "Valeur",
+      type: "Type",
+      status: "Status",
+      buy: "Achat",
+      sell: "Vente"
     },
-    {
-      date: "2020-01-01T00:00:00.000Z",
-      action: "AAPL",
-      type: "Achat",
-      price: 100,
-      amount: 10,
-      status: "SUCCESS",
-    },
-  ];
-  const [data, setData] = React.useState(fakeData);
+    en: {
+      date: "Transaction Date",
+      company: "Company",
+      quantity: "Quantity",
+      value: "Value",
+      type: "Type",
+      status: "Status",
+      buy: "Buy",
+      sell: "Sell"
+    }
+  };
+
+  // Sélection de la langue (JavaScript pur pour éviter l'erreur ts(8016))
+  const t = translations[lang] || translations.fr;
+
+  const [data, setData] = useState([]);
+
   useEffect(() => {
-    if (props) {
-      let data = props.dataTransactions.map((item) => {
+    if (dataTransactions) {
+      const formattedData = dataTransactions.map((item) => {
         return {
           date: item?.createdAt,
           libelle: item?.symbol,
           quantite: item?.quantity,
           valeurAchat: item?.valueAtExecution,
-          type: item?.isSellOrder ? "Vente" : "Achat",
+          // Traduction dynamique du type de transaction
+          type: item?.isSellOrder ? t.sell : t.buy,
           status: item?.status,
         };
       });
-      setData(data);
+      setData(formattedData);
     }
-  }, [props]);
+  }, [dataTransactions, t]); // On ajoute 't' en dépendance pour recalculer si la langue change
 
   return (
     <table className={TableTransactionStyles.transactionTable}>
       <thead>
         <tr className={TableTransactionStyles.tr}>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Date de la transaction
-          </th>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Société
-          </th>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Quantité
-          </th>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Valeur
-          </th>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Type
-          </th>
-          <th scope="col" className={TableTransactionStyles.th}>
-            Status
-          </th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.date}</th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.company}</th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.quantity}</th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.value}</th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.type}</th>
+          <th scope="col" className={TableTransactionStyles.th}>{t.status}</th>
         </tr>
       </thead>
       <tbody>
         {data.map((item, index) => (
           <tr key={index} className={TableTransactionStyles.tr}>
-            <td data-label="Date" className={TableTransactionStyles.td}>
-              {item?.date}
+            <td data-label={t.date} className={TableTransactionStyles.td}>
+              {item?.date ? new Date(item.date).toLocaleDateString() : "-"}
             </td>
-            <td data-label="Action" className={TableTransactionStyles.td}>
+            <td data-label={t.company} className={TableTransactionStyles.td}>
               {item?.libelle}
             </td>
-            <td data-label="Quantité" className={TableTransactionStyles.td}>
+            <td data-label={t.quantity} className={TableTransactionStyles.td}>
               {item?.quantite}
             </td>
-            <td data-label="Prix" className={TableTransactionStyles.td}>
-              {item?.valeurAchat}
+            <td data-label={t.value} className={TableTransactionStyles.td}>
+              {item?.valeurAchat?.toFixed(2)} $
             </td>
-            <td data-label="Type" className={TableTransactionStyles.td}>
+            <td data-label={t.type} className={TableTransactionStyles.td}>
               {item?.type}
             </td>
-            <td data-label="Status" className={TableTransactionStyles.td}>
-              {item?.status}
+            <td data-label={t.status} className={TableTransactionStyles.td}>
+              <span style={{ 
+                fontWeight: 'bold', 
+                color: item?.status === 'SUCCESS' ? '#2ecc71' : '#f39c12' 
+              }}>
+                {item?.status}
+              </span>
             </td>
           </tr>
         ))}

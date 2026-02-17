@@ -2,38 +2,57 @@ import React from "react";
 import TableTransactionStyles from "../styles/TableTransaction.module.css";
 import { useRouter } from "next/router";
 
-function TableSearch(props) {
+// Déstructuration des props pour inclure 'data' et 'lang'
+function TableSearch({ data, lang }) {
   const router = useRouter();
 
-  if (!props?.data) return <></>;
+  // Objet de traduction bilingue
+  const translations = {
+    fr: {
+      symbol: "Libellé",
+      name: "Nom",
+      action: "Action",
+      view: "Voir"
+    },
+    en: {
+      symbol: "Symbol",
+      name: "Name",
+      action: "Action",
+      view: "View"
+    }
+  };
+
+  // Sélection de la traduction (sécurité JavaScript sans assertion de type)
+  const t = translations[lang] || translations.fr;
+
+  if (!data) return <></>;
   
   return (
     <table className={TableTransactionStyles.transactionTable}>
       <thead>
         <tr className={TableTransactionStyles.tr}>
-          <th className={TableTransactionStyles.th}>Libellé</th>
-          <th className={TableTransactionStyles.th}>Nom</th>
-          <th className={TableTransactionStyles.th}>Action</th>
+          <th className={TableTransactionStyles.th}>{t.symbol}</th>
+          <th className={TableTransactionStyles.th}>{t.name}</th>
+          <th className={TableTransactionStyles.th}>{t.action}</th>
         </tr>
       </thead>
       <tbody>
-        {props.data.map((item, index) => (
+        {data.map((item, index) => (
           <tr key={index} className={TableTransactionStyles.tr}>
-            <td data-label="Libellé" className={TableTransactionStyles.td} style={{ fontWeight: '700' }}>
+            <td data-label={t.symbol} className={TableTransactionStyles.td} style={{ fontWeight: '700' }}>
               {item?.symbol}
             </td>
-            <td data-label="Nom" className={TableTransactionStyles.td}>
+            <td data-label={t.name} className={TableTransactionStyles.td}>
               {item?.name}
             </td>
-            <td data-label="Action" className={TableTransactionStyles.td}>
-              {/* Remplacement du composant Button par un bouton jaune stylisé */}
+            <td data-label={t.action} className={TableTransactionStyles.td}>
               <button
                 style={{
-                  backgroundColor: '#f3ca3e', // Jaune du projet
+                  backgroundColor: '#f3ca3e',
                   color: '#1a1a1a',
                   border: 'none',
                   padding: '8px 25px',
-                  borderRadius: '20px', // Arrondi
+                  borderRadius: '20px',
                   fontWeight: '700',
                   cursor: 'pointer',
                   fontSize: '0.85rem',
@@ -45,7 +64,7 @@ function TableSearch(props) {
                 onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                Voir
+                {t.view}
               </button>
             </td>
           </tr>

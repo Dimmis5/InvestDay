@@ -224,3 +224,30 @@
   .change .menuLine2 { opacity: 0; }
   .change .menuLine3 { transform: translateY(-6px) rotate(45deg); }
 }
+
+.langBtn {
+  background-color: #f3ca3e; 
+  color: #1a1a1a;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700; 
+  transition: all 0.2s ease;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.langBtn:hover {
+
+  background-color: #e5bd35;
+  transform: scale(1.05);
+}
+
+.langBtn:active {
+  transform: scale(0.95);
+}

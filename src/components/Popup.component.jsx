@@ -12,17 +12,39 @@ function Popup({
   maxCount = 10000,
   open,
   close,
+  lang // Ajout de la prop lang passée par le parent
 }) {
   const { wallets, selectedId } = useWallet();
   const [count, setCount] = useState(0);
   const fetch = useFetch();
 
-  // Reset le compteur quand on change d'action ou qu'on ouvre/ferme
+  // Traductions internes de la modale
+  const translations = {
+    fr: {
+      btnBuy: "Acheter",
+      btnSell: "Vendre",
+      btnClose: "Fermer",
+      errQty: "Villez saisir une quantité.",
+      successOrder: "Votre ordre a été créé !",
+      errOrder: "Erreur lors de l'ordre"
+    },
+    en: {
+      btnBuy: "Buy",
+      btnSell: "Sell",
+      btnClose: "Close",
+      errQty: "Please enter a quantity.",
+      successOrder: "Your order has been created!",
+      errOrder: "Error during the order"
+    }
+  };
+
+  // Sélection de la langue sans assertion de type pour éviter l'erreur ts(8016)
+  const t = translations[lang] || translations.fr;
+
   useEffect(() => {
     setCount(0);
   }, [open, symbol]);
 
-  // Gestion simplifiée des boutons + et -
   const increment = () => {
     setCount(prev => {
       const nextVal = (Number(prev) + 0.1);
@@ -37,39 +59,14 @@ function Popup({
     });
   };
 
-
-  // Gestion sécurisée des boutons + et -
-  // const increment = () => {
-  //   Si maxCount est 0 ou invalide, on met une limite arbitraire pour le test
-  //   const limit = (maxCount > 0) ? maxCount : 9999; 
-    
-  //   setCount(prev => {
-  //     const nextVal = (Number(prev) + 0.1);
-  //     if (nextVal >= limit) return Number(limit).toFixed(1);
-  //     return nextVal.toFixed(1);
-  //   });
-  // };
-
-  // const decrement = () => {
-  //   setCount(prev => {
-  //     const nextVal = (Number(prev) - 0.1);
-  //     if (nextVal <= 0) return (0).toFixed(1);
-  //     return nextVal.toFixed(1);
-  //   });
-  // };
-
   const handleChange = (e) => {
     const val = e.target.value;
-    
-    // Autoriser la saisie vide ou le point pour taper des décimales
     if (val === "") {
       setCount("");
       return;
     }
-
     const num = Number(val);
     if (isNaN(num)) return;
-
     if (num > maxCount) {
       setCount(maxCount);
     } else {
@@ -80,7 +77,7 @@ function Popup({
   const executeOrder = () => {
     let quantity = Number(count);
     if (quantity <= 0) {
-      toast.error("Veuillez saisir une quantité.");
+      toast.error(t.errQty); // Toast traduit
       return;
     }
 
@@ -90,15 +87,13 @@ function Popup({
       amount: quantity.toFixed(1),
       selling: sell ? "true" : "false",
     };
-
-    console.log(sell ? "SELLING" : "BUYING", payload);
     
     fetch.post("/api/transactions/", payload)
       .then(() => {
-        toast.success("Votre ordre a été créé !");
+        toast.success(t.successOrder); // Toast traduit
         close();
       })
-      .catch(() => toast.error("Erreur lors de l'ordre"));
+      .catch(() => toast.error(t.errOrder)); // Toast traduit
   };
 
   if (!open) return null;
@@ -113,7 +108,6 @@ function Popup({
           </div>
 
           <div className={PopupStyles.inputNumberWrapper}>
-            {/* On retire handleCount au profit de fonctions directes */}
             <button className={PopupStyles.decrease} onClick={decrement}>
               -
             </button>
@@ -122,24 +116,26 @@ function Popup({
               step="0.1" 
               value={count} 
               onChange={handleChange} 
-              onBlur={() => setCount(Number(count).toFixed(1))} // Formate au clic extérieur
+              onBlur={() => setCount(Number(count).toFixed(1))}
             />
             <button className={PopupStyles.increase} onClick={increment}>
               +
             </button>
           </div>
 
+          {/* Bouton d'action traduit dynamiquement */}
           <button
             className={PopupStyles.buttonBuy}
             onClick={executeOrder}
           >
-            {sell ? "Vendre" : "Acheter"}
+            {sell ? t.btnSell : t.btnBuy}
           </button>
         </div>
 
         <div className={PopupStyles.modalFooter}>
+          {/* Bouton fermer traduit */}
           <button className={PopupStyles.closeLink} onClick={close}>
-            Close
+            {t.btnClose}
           </button>
         </div>
       </div>
