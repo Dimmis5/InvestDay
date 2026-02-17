@@ -5,45 +5,21 @@
   padding-inline: 20px;
   border-bottom: 1px solid var(--clrUnselected);
   display: flex;
-  justify-content: space-between; /* Pousse logoSection à gauche et navButtonContainer à droite */
+  justify-content: space-between; 
   align-items: center;
   background-color: #fdfbf1;
   position: relative;
 }
 
-/* Bloc Logo + Email */
-.logoSection {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.logoContainer {
-  display: flex;
-  align-items: center;
-}
-
-.userEmailLeft {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: #555;
-  border-left: 1px solid #ddd;
-  padding-left: 15px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-/* Bloc de navigation à droite */
+/* --- SECTION GAUCHE : NAVIGATION --- */
 .navButtonContainer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
   list-style: none;
   margin: 0;
   padding: 0;
+  flex: 1; /* Pousse le reste vers la droite */
 }
 
 .navButtonContainer li {
@@ -54,10 +30,10 @@
 .navButtonContainer li a {
   vertical-align: middle;
   display: flex;
-  margin-left: 40px;
+  margin-right: 35px; /* Espace entre les onglets */
   text-decoration: none;
   color: var(--clrUnselected);
-  font-family: Inter;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 14px;
   transition: color 0.2s ease;
@@ -68,95 +44,18 @@
   font-weight: 700;
 }
 
-/* Menu Burger */
-.menu {
-  display: none;
-}
-
-.menuLine1,
-.menuLine2,
-.menuLine3 {
-  width: 20px;
-  height: 2px;
-  background-color: black;
-  margin-bottom: 4px;
-  transition: 0.3s ease;
-}
-
-/* --- RESPONSIVE --- */
-@media only screen and (max-width: 750px) {
-  .userEmailLeft {
-    display: none; /* Cache l'email sur mobile pour éviter les chevauchements */
-  }
-
-  .navBarContainer {
-    flex-direction: column;
-    height: auto;
-    padding-inline: 0px;
-    align-items: flex-start;
-  }
-
-  .logoSection {
-    padding: 15px 20px;
-  }
-
-  .navButtonContainer {
-    width: 100%;
-    text-align: center;
-    display: none;
-    flex-direction: column;
-    background-color: white;
-    z-index: 10;
-    border-bottom: 1px solid #eee;
-  }
-
-  .isActived {
-    display: flex;
-  }
-
-  .navButtonContainer li {
-    width: 100%;
-    border-top: 1px solid #f5f5f5;
-  }
-
-  .navButtonContainer li a {
-    width: 100%;
-    padding: 15px 0;
-    margin-left: 0;
-    justify-content: center;
-  }
-
-  .menu {
-    display: block;
-    position: absolute;
-    right: 20px;
-    top: 25px;
-  }
-
-  .change .menuLine1 {
-    transform: translateY(6px) rotate(-45deg);
-  }
-
-  .change .menuLine2 {
-    opacity: 0;
-  }
-
-  .change .menuLine3 {
-    transform: translateY(-6px) rotate(45deg);
-  }
-}
-
-
+/* --- SECTION CENTRALE : PORTFOLIO --- */
 .centerSection {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
+  z-index: 1;
 }
 
 .portfolioBadge {
-  background: #fffbe6; /* Jaune pâle */
+  background: #fffbe6;
   border: 1px solid #ffe58f;
   padding: 6px 14px;
   border-radius: 10px;
@@ -194,44 +93,134 @@
 }
 
 .miniBtnActive {
-  background: #f3ca3e; /* Jaune vif */
+  background: #f3ca3e;
   color: #000;
   font-weight: bold;
 }
 
-/* Masquer le badge sur mobile si l'espace manque */
-@media (max-width: 900px) {
-  .centerSection {
-    position: static;
-    transform: none;
-    margin: 0 auto;
-  }
-}
-.logoSection {
+/* --- SECTION DROITE : USER + LOGO + DECO --- */
+.rightSection {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
+  justify-content: flex-end;
+  flex: 1; /* Équilibre avec la gauche pour garder le centre au milieu */
 }
 
-.userInfo {
+.userInfoRight {
   display: flex;
   align-items: center;
   gap: 15px;
-  height: 100%;
+}
+
+.userEmail {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .separator {
   color: #ccc;
-  font-size: 2.2rem; /* Augmente la taille du trait vertical */
-  font-weight: 200;  /* Garde un trait fin et élégant */
+  font-size: 1.8rem;
+  font-weight: 200;
   line-height: 1;
   display: flex;
   align-items: center;
 }
 
-.userEmail {
-  color: #333;
-  font-size: 1rem;
-  font-weight: 500;
-  padding-top: 2px; /* Ajustement visuel pour l'alignement */
+.logoContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.logoutBtn:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+/* --- MENU BURGER (MOBILE) --- */
+.menu {
+  display: none;
+}
+
+.menuLine1, .menuLine2, .menuLine3 {
+  width: 20px;
+  height: 2px;
+  background-color: black;
+  margin-bottom: 4px;
+  transition: 0.3s ease;
+}
+
+/* --- RESPONSIVE --- */
+@media only screen and (max-width: 1050px) {
+  /* On désactive le positionnement absolu du centre si l'écran rétrécit trop */
+  .centerSection {
+    position: static;
+    transform: none;
+    margin: 0 auto;
+  }
+  
+  .navButtonContainer {
+    flex: none;
+  }
+}
+
+@media only screen and (max-width: 750px) {
+  .navBarContainer {
+    flex-direction: column;
+    height: auto;
+    padding-inline: 0px;
+    align-items: flex-start;
+  }
+
+  .rightSection {
+    width: 100%;
+    padding: 10px 20px;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+  }
+
+  .navButtonContainer {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    background-color: white;
+    z-index: 10;
+  }
+
+  .isActived {
+    display: flex;
+  }
+
+  .navButtonContainer li {
+    width: 100%;
+    border-top: 1px solid #f5f5f5;
+  }
+
+  .navButtonContainer li a {
+    width: 100%;
+    padding: 15px 20px;
+    margin-right: 0;
+  }
+
+  .menu {
+    display: block;
+    position: absolute;
+    right: 20px;
+    top: 25px;
+  }
+
+  .change .menuLine1 { transform: translateY(6px) rotate(-45deg); }
+  .change .menuLine2 { opacity: 0; }
+  .change .menuLine3 { transform: translateY(-6px) rotate(45deg); }
 }

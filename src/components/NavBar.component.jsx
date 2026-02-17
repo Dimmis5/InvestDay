@@ -18,30 +18,21 @@ function Navbar() {
 
   return (
     <nav className={navBarStyles.navBarContainer}>
-      {/* SECTION GAUCHE : Logo | Email */}
-      <div className={navBarStyles.logoSection}>
-        <div className={navBarStyles.logoContainer}>
-          <Link href={"/"}>
-            <Image 
-              src="/assets/INVEST.png" 
-              width={100} 
-              height={150} 
-              alt="logo" 
-              priority 
-            />
-          </Link>
-        </div>
-        
-        {/* Affichage de l'email avec séparateur agrandi */}
-        {user && (
-          <div className={navBarStyles.userInfo}>
-            <span className={navBarStyles.separator}>|</span>
-            <span className={navBarStyles.userEmail}>{user.email}</span>
-          </div>
-        )}
-      </div>
+      
+      {/* SECTION GAUCHE : Menu de navigation */}
+      <ul
+        className={`${navBarStyles.navButtonContainer} ${
+          menu ? navBarStyles.isActived : ""
+        }`}
+        onClick={() => setMenu(false)}
+      >
+        <NavTab handleToggle={setActive} active={active} id="accueil" title="Accueil" to="/" />
+        <NavTab handleToggle={setActive} active={active} id="wallet" title="Portefeuille" to="/wallet" />
+        <NavTab handleToggle={setActive} active={active} id="market" title="Marchés" to="/market" />
+        <NavTab handleToggle={setActive} active={active} id="ranking" title="Classement" to="/ranks" />
+      </ul>
 
-      {/* SECTION CENTRALE : Sélecteur de Portfolio */}
+      {/* SECTION CENTRALE : Sélecteur de Portfolio (reste au milieu) */}
       {user && wallets && (
         <div className={navBarStyles.centerSection}>
           <div className={navBarStyles.portfolioBadge}>
@@ -66,19 +57,25 @@ function Navbar() {
         </div>
       )}
 
-      {/* SECTION DROITE : Menu de navigation */}
-      <ul
-        className={`${navBarStyles.navButtonContainer} ${
-          menu ? navBarStyles.isActived : ""
-        }`}
-        onClick={() => setMenu(false)}
-      >
-        <NavTab handleToggle={setActive} active={active} id="accueil" title="Accueil" to="/" />
-        <NavTab handleToggle={setActive} active={active} id="wallet" title="Portefeuille" to="/wallet" />
-        <NavTab handleToggle={setActive} active={active} id="market" title="Marchés" to="/market" />
-        <NavTab handleToggle={setActive} active={active} id="ranking" title="Classement" to="/ranks" />
-        <NavTab handleToggle={() => logout()} active={active} id="logout" title="Déconnexion" to="/login" />
-      </ul>
+      {/* SECTION DROITE : Logo | Email | Déco */}
+      <div className={navBarStyles.rightSection}>
+        {user && (
+          <div className={navBarStyles.userInfoRight}>
+            <span className={navBarStyles.userEmail}>{user.email}</span>
+            <span className={navBarStyles.separator}>|</span>
+          </div>
+        )}
+        
+        <div className={navBarStyles.logoContainer}>
+          <Link href={"/"}>
+            <Image src="/assets/INVEST.png" width={100} height={150} alt="logo" priority />
+          </Link>
+        </div>
+
+        <div className={navBarStyles.logoutBtn} onClick={() => logout()}>
+          <Image src="/assets/deco.png" width={35} height={35} alt="Déconnexion" />
+        </div>
+      </div>
 
       <div className={`${navBarStyles.menu} ${menu ? navBarStyles.change : ""}`} onClick={toggleMenu}>
         <div className={navBarStyles.menuLine1}></div>

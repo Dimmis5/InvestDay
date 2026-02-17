@@ -15,10 +15,10 @@ function TableRanks({ data = [], selectedId }) {
     <table className={styles.transactionTable}>
       <thead>
         <tr className={styles.tr}>
-          <th className={styles.th}>RANG</th>
-          <th className={styles.th}>TRADER</th>
-          <th className={styles.th}>CASH DISPONIBLE</th>
-          <th className={styles.th}>WALLET ID</th>
+          <th className={styles.th}>CLASSEMENT</th>
+          <th className={styles.th}>INVESTISSEUR</th>
+          <th className={styles.th}>ARGENT DISPONIBLE</th>
+          <th className={styles.th}>PORTEFEUILLE ID</th>
         </tr>
       </thead>
       <tbody>
