@@ -79,7 +79,7 @@ function Navbar() {
         
         <div className={navBarStyles.logoContainer}>
           <Link href={"/"}>
-            <Image src="/assets/INVEST.png" width={40} height={60} alt="logo" priority />
+            <Image src="/assets/INVEST.png" width={80} height={120} alt="logo" priority />
           </Link>
         </div>
 
