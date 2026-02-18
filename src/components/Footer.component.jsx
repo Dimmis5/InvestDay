@@ -16,7 +16,7 @@ export default function Footer() {
           notre discord
         </a>{" "}
       </span>
-      <span>IsepInvest - v1.2</span>
+      <span>Invest Days - v2.0</span>
     </div>
   );
 }
