@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import requestIp from 'request-ip';
 import { Request } from "../../../types/request.type";
 import stocksService from "../../../services/stocks/stocks.service";
-const { API_POLYGON_KEY } = process.env;
 
 export default apiHandler(search);
 
