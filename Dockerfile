@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Stage 2: builder
 FROM node:25-alpine3.22 AS builder
