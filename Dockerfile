@@ -31,7 +31,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apk add --no-cache openssl && \
+    addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
@@ -42,6 +43,7 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 
 RUN chmod +x /app/scripts/*.sh && \
     chown -R nextjs:nodejs /app
