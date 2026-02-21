@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
-RUN npm ci --frozen-lockfile
+RUN npm ci
 
 # Stage 2: builder
 FROM node:25-alpine3.22 AS builder
