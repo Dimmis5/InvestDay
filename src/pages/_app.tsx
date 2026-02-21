@@ -1,4 +1,3 @@
-import { validateEnv } from "../lib/env";
 import "../styles/globals.css";
 
 import type { AppProps } from "next/app";
@@ -11,10 +10,6 @@ import { LanguageProvider } from "../context/LanguageContext"; // 1. Import du p
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-if (typeof window === "undefined") {
-  validateEnv();
-}
 
 type Page<P = {}> = NextPage<P> & {
   getLayout?: (page: ReactNode) => ReactNode;
