@@ -18,17 +18,17 @@ async function sendReset(req: Request, res: NextApiResponse<any>) {
   const { email } = req.query;
 
   const transporter = nodemailer.createTransport({
-    port: 465,
-    host: "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT!),
+    host: process.env.SMTP_HOST!,
     auth: {
-        user: "contact.isepinvest@gmail.com",
-        pass: "lmyhlmvfztilwcxp", // a mettre dans le .env lors de la prod
+      user: process.env.SMTP_USER!,
+      pass: process.env.SMTP_PASS!,
     },
     secure: true,
-  })
+  });
 
   const mailData = {
-    from: 'contact.isepinvest@gmail.com',
+    from: process.env.SMTP_USER!,
     to: email,
     subject: `Réinitialisation de votre mot de passe`,
     text: 'Réinitialisation de votre mot de passe',

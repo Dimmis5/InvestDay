@@ -53,15 +53,12 @@ function FetchProvider({ children }) {
     return handleResponse(response);
   }
   function authHeader(url) {
-    // return auth header with jwt if user is logged in and request is to the api url
     const isLoggedIn = user && user.token;
-    const isApiUrl = url.startsWith(process.env.API_URL || "");
+    const isApiUrl = url.startsWith("/api");
     if (isLoggedIn && isApiUrl) {
       return { Authorization: `Bearer ${user.token}` };
-    } else {
-      logout();
-      return {};
     }
+    return {};
   }
 
   function handleResponse(response) {

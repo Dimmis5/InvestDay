@@ -1,5 +1,4 @@
 import { StockApi } from "../../types/stockapi.type";
-const { API_KEY } = process.env;
 const { API_POLYGON_KEY } = process.env;
 
 async function search(
@@ -130,36 +129,25 @@ async function getLastPrice(
   userId: number,
   ip: string
 ): Promise<any> {
-  console.log("🚀 getLastPrice appelée pour le symbole:", symbol);
-  console.log("🔑 Clé API (début):", API_POLYGON_KEY?.substring(0, 6) + "...");
-
-  let url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${API_POLYGON_KEY}`;
-
-  console.log("📡 URL appelée:", url);
+  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${API_POLYGON_KEY}`;
 
   const response = await fetch(url, {
     method: "GET",
-    headers: {}, // On a retiré createHeader
+    headers: {},
   });
 
   const data = await response.json();
-  console.log("📦 Réponse brute de Polygon:", data);
 
-  // Formatage CRITIQUE pour que index.ts comprenne
   if (data.results && data.results.length > 0) {
-    const formattedResponse = {
+    return {
       results: [{
-        price: data.results[0].c, // Le prix de clôture
-        symbol: symbol
+        price: data.results[0].c,
+        symbol: symbol,
       }]
     };
-    console.log("✅ Réponse formatée:", formattedResponse);
-    return formattedResponse;
-  } else {
-    console.error("❌ Aucun résultat dans la réponse Polygon:", data);
-    // On retourne quand même un tableau vide pour éviter l'erreur "Cannot read properties of undefined"
-    return { results: [] };
   }
+
+  return { results: [] };
 }
 
 const stocksService = {

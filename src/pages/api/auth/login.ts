@@ -1,49 +1,33 @@
 import { apiHandler } from "../../../helpers/api/api-handler";
 import jwt from "jsonwebtoken";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../../lib/prisma";
-
 import bcrypt from "bcrypt";
 
-// listen for get request
 export default apiHandler(login);
 
 async function login(req: NextApiRequest, res: NextApiResponse<any>) {
-  if (req.method !== "POST") {
-    throw `Method ${req.method} not allowed`;
+  if (req.method !== "POST") throw `Method ${req.method} not allowed`;
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error("FATAL: JWT_SECRET environment variable is not set");
   }
-  // retrieve user data
+
   const { email, password } = req.body;
-  if (!email || !password) {
-    throw "Email and password are required";
-  }
+  if (!email || !password) throw "Email and password are required";
 
-  // let prisma = new PrismaClient();
-
-  // check user
-  const user = await prisma.user.findFirst({
-    where: {
-      email: email,
-    },
-  });
+  const user = await prisma.user.findFirst({ where: { email } });
   if (!user) throw "Username or password is incorrect";
 
-  // check password
   const pass = await bcrypt.compare(password, user.password);
-  if (!pass) {
-    throw "Username or password is incorrect";
-  }
-  //if(!user.isAdmin) throw "Login disabled";
+  if (!pass) throw "Username or password is incorrect";
+
   const token = jwt.sign(
     { sub: user.id, isAdmin: user.isAdmin },
-    process.env.secret || "secret",
-    {
-      expiresIn: "7d",
-    }
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
   );
 
-  // return basic user details and token
   return res.status(200).json({
     id: user.id,
     username: user.name,
