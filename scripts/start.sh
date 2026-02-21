@@ -11,9 +11,11 @@ for var in $required_vars; do
 done
 
 echo "⏳ Waiting for database..."
-until npx prisma db ping 2>/dev/null; do
+until npx prisma migrate status > /dev/null 2>&1; do
+  echo "  DB not ready, retrying in 2s..."
   sleep 2
 done
+
 
 echo "🔄 Running migrations..."
 npx prisma migrate deploy
