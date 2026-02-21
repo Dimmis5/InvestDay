@@ -1,0 +1,17 @@
+name: Clear Actions Cache
+on:
+  workflow_dispatch:
+
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear all caches
+        run: |
+          gh extension install actions/gh-actions-cache
+          CACHES=$(gh actions-cache list -R ${{ github.repository }} --limit 100 | cut -f1)
+          for cache in $CACHES; do
+            gh actions-cache delete "$cache" -R ${{ github.repository }} --confirm
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
