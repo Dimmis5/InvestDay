@@ -18,7 +18,7 @@ done
 
 
 echo "🔄 Running migrations..."
-npx prisma migrate deploy
+npx prisma migrate deploy --config prisma/prisma.config.ts
 
 echo "🚀 Starting Next.js..."
 exec node server.js
