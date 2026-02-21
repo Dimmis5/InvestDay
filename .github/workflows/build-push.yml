@@ -57,7 +57,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            cd /srv/investday
+            cd /srv/investdays
             docker compose down
             docker compose pull app
             docker compose up -d
