@@ -1,11 +1,11 @@
 import Head from "next/head";
 import homeStyles from "../styles/Home.module.css";
 import DashBoardLayout from "../components/layouts/DashBoard.layout";
-import { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
 import { useLanguage } from "../context/LanguageContext";
+import NextImage from "next/image"; 
 
 export default function Home() {
   const router = useRouter();
@@ -17,7 +17,6 @@ export default function Home() {
     actualiseWalletsLines,
   } = useWallet();
 
-  // Objet de traduction avec typage explicite pour éviter l'erreur d'indexation
   const translations = {
     fr: {
       title: "Bourse",
@@ -29,7 +28,7 @@ export default function Home() {
       auto: "Automobile",
       fin: "Finance",
       empty: "Aucun actif dans ce portefeuille. Commencez à trader !",
-      today: "aujourd'hui"
+      today: "aujourd'hui",
     },
     en: {
       title: "Stock Market",
@@ -41,11 +40,10 @@ export default function Home() {
       auto: "Automotive",
       fin: "Finance",
       empty: "No assets in this portfolio. Start trading!",
-      today: "today"
+      today: "today",
     }
   };
 
-  // Correction de l'erreur d'indexation avec 'as keyof typeof translations'
   const t = translations[lang as keyof typeof translations];
 
   useEffect(() => {
@@ -64,9 +62,40 @@ export default function Home() {
       </Head>
 
       <main className={homeStyles.pageContainer}>
-        <div className={homeStyles.welcomeSection}>
-          <h1 className={homeStyles.marketTitle}>{t.title}</h1>
-          <p className={homeStyles.marketSub}>{t.sub}</p>
+        <div className={homeStyles.welcomeSection} style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingRight: '0px' 
+        }}>
+          <div>
+            <h1 className={homeStyles.marketTitle}>{t.title}</h1>
+            <p className={homeStyles.marketSub}>{t.sub}</p>
+          </div>
+          
+          <a 
+            href="https://twelvedata.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              textDecoration: 'none',
+              marginRight: '-50px', 
+              overflow: 'hidden'    
+            }}
+          >
+            <NextImage 
+              src="/assets/partners/twelve_data.svg" 
+              alt="Twelve Data Logo" 
+              width={350}  
+              height={100} 
+              style={{ 
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
+          </a>
         </div>
 
         <div className={homeStyles.filterBar}>
