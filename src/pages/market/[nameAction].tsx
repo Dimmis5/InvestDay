@@ -37,8 +37,6 @@ export default function DetailAction(req: Request) {
     fr: {
       cashLabel: "Cash (P.",
       buyBtn: "Acheter",
-      capLabel: "Capitalisation boursière",
-      sharesLabel: "Actions en circulation",
       popTitle: "Acheter",
       popSub: "Achat d'actions",
       loading: "Chargement du graphique..."
@@ -46,8 +44,6 @@ export default function DetailAction(req: Request) {
     en: {
       cashLabel: "Cash (P.",
       buyBtn: "Buy",
-      capLabel: "Market Capitalization",
-      sharesLabel: "Shares Outstanding",
       popTitle: "Buy",
       popSub: "Purchase shares",
       loading: "Loading chart..."
@@ -56,12 +52,9 @@ export default function DetailAction(req: Request) {
 
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
-  // 1. SECURITE : Pré-calcul des données du graphique
-  // useMemo permet de recalculer uniquement quand 'data' change
     const chartData = useMemo(() => {
         if (data?.results && Array.isArray(data.results)) {
           return data.results.map((i: any) => {
-            // On s'assure que i.t est traité comme un nombre et converti en millisecondes
             const timestamp = Number(i.t);
             return [timestamp, i.c];
           });
@@ -161,10 +154,9 @@ const options = {
     rangeSelector: { 
       enabled: true,
       selected: 3,
-      // FORMAT DES DATES : %e = jour, %B = mois complet, %Y = année
       inputDateFormat: lang === 'fr' ? '%e %B %Y' : '%B %e, %Y',
-      inputEditDateFormat: '%Y-%m-%d', // Format standard pour l'édition (plus simple pour le clavier)
-      inputBoxWidth: 100, // On élargit la boîte car "septembre" prend de la place
+      inputEditDateFormat: '%Y-%m-%d', 
+      inputBoxWidth: 100, 
       
       buttonTheme: {
         fill: 'none',
@@ -260,10 +252,9 @@ const options = {
         </div>
 
         <div className={homeStyles.assetCard} style={{ marginBottom: '30px', padding: '20px', minHeight: '500px' }}>
-          {/* 3. RENDU : Condition basée sur chartData sécurisé */}
           {chartReady && chartData.length > 0 ? (
             <HighchartsReact
-              key={`chart-${lang}-${nameAction}-${chartData.length}`} // Key unique pour forcer le démontage/remontage
+              key={`chart-${lang}-${nameAction}-${chartData.length}`} 
               highcharts={Highcharts}
               constructorType={"stockChart"}
               options={options}
@@ -273,21 +264,6 @@ const options = {
               {t.loading}
             </div>
           )}
-        </div>
-
-        <div className={homeStyles.summaryGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-          <div className={homeStyles.statCard} style={{ padding: '20px' }}>
-            <span style={{ color: '#888', fontSize: '14px' }}>{t.capLabel}</span>
-            <div style={{ fontSize: '24px', fontWeight: '800', marginTop: '5px' }}>
-              {format(dataCleaned.market_cap)} $
-            </div>
-          </div>
-          <div className={homeStyles.statCard} style={{ padding: '20px' }}>
-            <span style={{ color: '#888', fontSize: '14px' }}>{t.sharesLabel}</span>
-            <div style={{ fontSize: '24px', fontWeight: '800', marginTop: '5px' }}>
-              {format(dataCleaned.number)}
-            </div>
-          </div>
         </div>
 
         <Popup

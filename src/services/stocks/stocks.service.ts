@@ -1,149 +1,161 @@
 import { StockApi } from "../../types/stockapi.type";
 
-const { API_POLYGON_KEY } = process.env;
+const { FINAGE_API_KEY } = process.env;
 
-// Définition des intervalles acceptés par l'API Polygon/Twelve Data
 export enum times {
   day = "day",
   week = "week",
   month = "month",
 }
 
-async function search(
-  term: string,
-  userId: number,
-  ip: string
-): Promise<StockApi[]> {
-  const url = `https://api.polygon.io/v3/reference/tickers?apiKey=${API_POLYGON_KEY}&search=${term}`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: createHeader(userId as unknown as string, ip as unknown as string),
-  });
-  const data = await response.json();
-  const matches: StockApi[] = [];
+async function search(term: string, userId: number, ip: string): Promise<StockApi[]> {
+  const url = `https://api.finage.co.uk/search/ticker/${term}?apikey=${FINAGE_API_KEY}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    const matches: StockApi[] = [];
 
-  if (data["results"]) {
-    for (let stock of data["results"]) {
-      if (
-        stock?.market == "stocks" || 
-        stock?.market == "etfs" || 
-        stock?.market == "forex" || 
-        stock?.market == "crypto"
-      ) {
-        if (
-          (stock?.currency_symbol && stock?.currency_symbol.toUpperCase() == "USD") ||
-          (stock?.currency_name && stock?.currency_name?.toUpperCase() == "USD")
-        ) {
-          matches.push({
-            symbol: stock["ticker"],
-            name: stock["name"],
-            market: stock["market"],
-            region: stock["locale"],
-            currency: stock["currency_name"],
-          });
-        }
-      }
+    if (Array.isArray(data)) {
+      data.forEach((stock: any) => {
+        matches.push({
+          symbol: stock.symbol,
+          name: stock.name,
+          market: stock.market || "stocks",
+          region: "US",
+          currency: "USD",
+        });
+      });
     }
+    return matches;
+  } catch (error) {
+    return [];
   }
-
-  return matches;
 }
 
-function createHeader(userId: string, ip: string) {
-  return {
-    "X-Polygon-Edge-ID": `${userId}`,
-    "X-Polygon-Edge-IP-Address": `${ip}`,
-    "X-Polygon-Edge-User-Agent": "*",
-  };
-}
-
-async function getRecentPrices(
-  symbol: string,
-  time: times = times.day,
-  userId: number,
-  ip: string,
-  isCrypto?: boolean
-): Promise<any> {
-  let today = new Date();
-  let daybegining = new Date();
-  daybegining.setDate(today.getDate() - 2 * 365);
-
-  let formatedToday = today.toISOString().slice(0, 10);
-  let formatedBeginingDate = daybegining.toISOString().slice(0, 10);
-
-  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/${time}/${formatedBeginingDate}/${formatedToday}?adjusted=true&sort=asc&limit=10000&apiKey=${API_POLYGON_KEY}`;
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: createHeader(userId as unknown as string, ip as unknown as string),
-  });
-
-  return await response.json();
-}
-
-async function getDetailsStock(
-  symbol: string,
-  userId: number,
-  ip: string
-): Promise<any> {
-  let url = "";
-  if (symbol.startsWith("X:")) {
-    url = `https://api.polygon.io/v1/summaries?ticker.any_of=${symbol}&apiKey=${API_POLYGON_KEY}`;
-  } else {
-    url = `https://api.polygon.io/v3/reference/tickers/${symbol}?apiKey=${API_POLYGON_KEY}`;
-  }
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: createHeader(userId as unknown as string, ip as unknown as string),
-  });
-
-  return await response.json();
-}
-
-async function getLogoStock(
-  link: string,
-  userId: number,
-  ip: string
-): Promise<string> {
-  const url = `${link}?apiKey=${API_POLYGON_KEY}`;
-
-  const response = await fetch(url, {
-    method: "GET",
-    headers: createHeader(userId as unknown as string, ip as unknown as string),
-  });
-
-  return await response.text();
-}
-
-async function getLastPrice(
-  symbol: string,
-  userId: number,
-  ip: string
-): Promise<any> {
-  const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${API_POLYGON_KEY}`;
+async function getLastPrice(symbol: string, userId: number, ip: string): Promise<any> {
+  const url = `https://api.finage.co.uk/last/stock/${symbol.toUpperCase()}?apikey=${FINAGE_API_KEY}`;
 
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: createHeader(userId as unknown as string, ip as unknown as string),
-    });
-
+    const response = await fetch(url);
     const data = await response.json();
 
-    if (data && data.results && data.results.length > 0) {
-      return {
-        results: [{
-          price: data.results[0].c,
-          symbol: symbol,
-        }]
-      };
+    if (data && (data.p || data.ask || data.bid)) {
+      const price = data.p || ((data.ask + data.bid) / 2) || data.ask || data.bid;
+      return { results: [{ price, symbol: symbol.toUpperCase() }] };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const aggUrl = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&apikey=${FINAGE_API_KEY}`;
+    
+    const aggResponse = await fetch(aggUrl);
+    const aggData = await aggResponse.json();
+    const results = aggData?.results;
+
+    if (Array.isArray(results) && results.length > 0) {
+      const last = results[results.length - 1];
+      if (last?.c) {
+        return { results: [{ price: last.c, symbol: symbol.toUpperCase() }] };
+      }
     }
   } catch (error) {
-    console.error("Erreur getLastPrice:", error);
+    return { results: [] };
   }
 
   return { results: [] };
+}
+
+async function getRecentPrices(symbol: string, time: times = times.day, userId: number, ip: string, _unused?: boolean): Promise<any> {
+  const today = new Date().toISOString().split('T')[0];
+  
+  let fromDate: string;
+  let multiplier: string;
+  let timespan: string;
+
+  switch (time) {
+    case "week":
+      fromDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      multiplier = "1";
+      timespan = "day";
+      break;
+    case "month":
+      fromDate = "2020-01-01";
+      multiplier = "1";
+      timespan = "week";
+      break;
+    case "day":
+    default:
+      fromDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      multiplier = "1";
+      timespan = "day";
+      break;
+  }
+
+  const url = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/${multiplier}/${timespan}/${fromDate}/${today}?limit=500&sort=asc&apikey=${FINAGE_API_KEY}`;
+
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+
+    if (!text.startsWith('{') && !text.startsWith('[')) {
+      return { results: [] };
+    }
+
+    const data = JSON.parse(text);
+    return { results: data.results || [] };
+  } catch (error) {
+    return { results: [] };
+  }
+}
+
+async function getDetailsStock(symbol: string, userId: number, ip: string): Promise<any> {
+  return {
+    results: {
+      name: symbol.toUpperCase(),
+      market_cap: null,
+      weighted_shares_outstanding: null,
+      branding: { logo_url: null },
+    }
+  };
+}
+
+async function getLogoStock(link: string, userId: number, ip: string): Promise<any> {
+  try {
+    const response = await fetch(link);
+    const buffer = await response.arrayBuffer();
+    return Buffer.from(buffer);
+  } catch (error) {
+    return "";
+  }
+}
+
+
+async function getPreviousClose(symbol: string, userId: number, ip: string): Promise<any> {
+  const today = new Date().toISOString().split('T')[0];
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const url = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&sort=asc&apikey=${FINAGE_API_KEY}`;
+
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+    if (!text.startsWith('{') && !text.startsWith('[')) return null;
+
+    const data = JSON.parse(text);
+    const results = data?.results;
+
+    if (Array.isArray(results) && results.length >= 2) {
+      return results[results.length - 2].c;
+    }
+    if (Array.isArray(results) && results.length === 1) {
+      return results[0].c;
+    }
+  } catch (error) {
+    return null;
+  }
+
+  return null;
 }
 
 const stocksService = {
@@ -152,6 +164,8 @@ const stocksService = {
   getDetailsStock,
   getLastPrice,
   getLogoStock,
+  getPreviousClose, 
 };
+
 
 export default stocksService;
