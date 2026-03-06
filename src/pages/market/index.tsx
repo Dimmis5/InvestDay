@@ -118,16 +118,18 @@ export default function Market() {
         </div>
 
         <div className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 40px' }}>
-          <div style={{ borderRadius: '15px', border: '2px solid #f3ca3e', backgroundColor: 'white', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 15px' }}>
-            <Image src="/assets/search.svg" width={20} height={20} alt="search" style={{ opacity: 0.5 }} />
+          <div style={{ borderRadius: '15px', border: '2px solid #f3ca3e', backgroundColor: 'white', display: 'flex', alignItems: 'center', padding: '0 15px', gap: '10px' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
             <input
-              className={marketStyles.formSubmit}
               type="text"
               placeholder={t.placeholder}
               value={input}
               onChange={onChange}
               onKeyDown={handleKeyDown}
-              style={{ height: '50px', border: 'none', width: '100%', paddingLeft: '15px', outline: 'none', fontSize: '16px' }}
+              style={{ height: '50px', border: 'none', width: '100%', paddingLeft: '0', outline: 'none', fontSize: '16px', backgroundColor: 'transparent' }}
             />
           </div>
         </div>

@@ -1,61 +1,56 @@
 import React from "react";
 import footerStyles from "../styles/Footer.module.css";
 import { useLanguage } from "../context/LanguageContext";
+import Image from "next/image"; // Importation pour optimiser l'image
 
 export default function Footer() {
   const { lang } = useLanguage();
 
   const translations = {
     fr: {
-      description: (
-        <>
-          <strong>InvestDays</strong> utilise la technologie Twelve Data pour accéder aux données financières. 
-          Twelve Data est l'un des principaux fournisseurs mondiaux de données financières et propose des solutions précises, 
-          en temps réel et historiques, couvrant les actions mondiales, le forex, la crypto, les ETF, 
-          les fonds communs de placement, et plus encore. Propulsée par des technologies robustes via API REST et streaming WebSocket, 
-          la plateforme offre un accès inégalé aux données en direct — par ex., BTC/USD — aux derniers événements d'entreprise, 
-          rapports financiers, données d'analyse et calendrier économique.
-        </>
-      ),
       support: "Support",
       contact: "Contactez-nous",
       discord: "Notre Discord",
       legal: "Légal",
       mentions: "Mentions Légales",
       privacy: "Confidentialité",
-      version: "v2.0"
+      version: "v2.0",
+      dataSource: "Données fournies par"
     },
     en: {
-      description: (
-        <>
-          <strong>InvestDays</strong> uses Twelve Data technology to access financial data. 
-          Twelve Data is one of the world’s leading financial data providers and delivers accurate, 
-          real-time, and historical data solutions, covering global stocks, forex, crypto, ETFs, 
-          mutual funds, and more. Powered by robust technologies across REST API and WebSocket streaming, 
-          the platform provides unparalleled access to live data—e.g., BTC/USD—the latest corporate events, 
-          financial reports, analytics data, and economic calendar.
-        </>
-      ),
       support: "Support",
       contact: "Contact Us",
       discord: "Our Discord",
       legal: "Legal",
       mentions: "Legal Mentions",
       privacy: "Privacy Policy",
-      version: "v2.0"
+      version: "v2.0",
+      dataSource: "Data provided by"
     }
   };
 
-const t = translations[lang] || translations.fr;
+  const t = translations[lang] || translations.fr;
 
   return (
     <footer className={footerStyles.container}>
       <div className={footerStyles.content}>
-
         <div className={footerStyles.descriptionSection}>
           <p className={footerStyles.twelveDataText}>
             {t.description}
           </p>
+
+          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <span style={{ fontSize: '12px', opacity: 0.7 }}>{t.dataSource}</span>
+            <a href="https://finage.co.uk" target="_blank" rel="noreferrer">
+              <img 
+                src="/assets/partners/finage_logo.svg" 
+                alt="Finage Logo" 
+                style={{ height: '30px', filter: 'grayscale(100%) brightness(1.5)', opacity: 0.8 }}
+                onMouseOver={(e) => e.currentTarget.style.filter = 'grayscale(0%)'}
+                onMouseOut={(e) => e.currentTarget.style.filter = 'grayscale(100%) brightness(1.5)'}
+              />
+            </a>
+          </div>
         </div>
 
         <div className={footerStyles.linksSection}>
