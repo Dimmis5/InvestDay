@@ -68,9 +68,7 @@ export default function Login() {
         <title>InvestDays - Connexion</title>
         <meta name="description" content="Page d'accueil" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icondocker-compose down
-docker-compose up --build
-" href="/favicon3.ico" />
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={loginStyles.container}>

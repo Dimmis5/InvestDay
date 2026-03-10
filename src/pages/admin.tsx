@@ -10,7 +10,7 @@ import {
   Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell,
   AreaChart, Area,
-  BarChart, Bar // <-- AJOUTE CECI
+  BarChart, Bar 
 } from "recharts";
 
 interface User {
@@ -102,6 +102,7 @@ export default function AdminDashboard() {
     <>
       <Head>
         <title>InvestDays - {t.title}</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>

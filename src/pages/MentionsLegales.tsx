@@ -8,6 +8,7 @@ export default function MentionsLegales() {
     <>
       <Head>
         <title>InvestDays - Mentions Légales</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>

@@ -74,7 +74,9 @@ export default function Ranks() {
 
   return (
     <>
-      <Head><title>{t.headTitle}</title></Head>
+      <Head><title>{t.headTitle}</title>
+      <link rel="icon" href="/favicon3.ico" />
+      </Head>
       <main className={homeStyles.pageContainer}>
         <div className={homeStyles.marketHeader} style={{ marginBottom: '30px' }}>
           <div>

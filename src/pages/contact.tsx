@@ -12,6 +12,7 @@ export default function Contact() {
     <>
       <Head>
         <title>InvestDays - Contactez-nous</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>
