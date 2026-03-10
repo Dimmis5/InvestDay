@@ -8,6 +8,7 @@ export default function Confidentialite() {
     <>
       <Head>
         <title>InvestDays - Politique de Confidentialité</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>

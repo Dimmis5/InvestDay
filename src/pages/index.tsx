@@ -72,6 +72,7 @@ export default function Home() {
     <>
       <Head>
         <title>InvestDays - {t.title}</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>

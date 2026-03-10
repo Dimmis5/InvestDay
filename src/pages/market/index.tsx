@@ -87,6 +87,7 @@ export default function Market() {
       <Head>
         <title>{t.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
 
       <main className={homeStyles.pageContainer}>
