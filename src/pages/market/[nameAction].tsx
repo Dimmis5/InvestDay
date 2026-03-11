@@ -19,14 +19,14 @@ export default function DetailAction(req: Request) {
   const [isOpen, setIsOpen] = useState(false);
   const [detail, setDetail] = useState<any>({});
   const [chartReady, setChartReady] = useState(false);
-  
+  const [chartType, setChartType] = useState<"line" | "candlestick">("line");
+
   const { user, isAuthenticated } = useAuthentification();
   const { wallets, selectedId, getPrice } = useWallet();
   const { lang } = useLanguage();
   const router = useRouter();
-  const { nameAction , name} = router.query;
+  const { nameAction, name } = router.query;
   const fetch = useFetch();
-  
 
   const [dataCleaned, setDataCleaned] = useState({
     name: "-",
@@ -40,28 +40,44 @@ export default function DetailAction(req: Request) {
       buyBtn: "Acheter",
       popTitle: "Acheter",
       popSub: "Achat d'actions",
-      loading: "Chargement du graphique..."
+      loading: "Chargement du graphique...",
+      line: "Courbe",
+      candle: "Bougies",
     },
     en: {
       cashLabel: "Cash (P.",
       buyBtn: "Buy",
       popTitle: "Buy",
       popSub: "Purchase shares",
-      loading: "Loading chart..."
+      loading: "Loading chart...",
+      line: "Line",
+      candle: "Candlestick",
     }
   };
 
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
-    const chartData = useMemo(() => {
-        if (data?.results && Array.isArray(data.results)) {
-          return data.results.map((i: any) => {
-            const timestamp = Number(i.t);
-            return [timestamp, i.c];
-          });
-        }
-        return [];
-      }, [data]);
+  // Données courbe : [timestamp, close]
+  const lineData = useMemo(() => {
+    if (data?.results && Array.isArray(data.results)) {
+      return data.results.map((i: any) => [Number(i.t), i.c]);
+    }
+    return [];
+  }, [data]);
+
+  // Données bougies : [timestamp, open, high, low, close]
+  const candleData = useMemo(() => {
+    if (data?.results && Array.isArray(data.results)) {
+      return data.results.map((i: any) => [
+        Number(i.t),
+        i.o ?? i.c,
+        i.h ?? i.c,
+        i.l ?? i.c,
+        i.c,
+      ]);
+    }
+    return [];
+  }, [data]);
 
   useEffect(() => {
     const loadExporting = async () => {
@@ -111,9 +127,7 @@ export default function DetailAction(req: Request) {
 
   function fetchData(symbol: string) {
     fetch.get("/api/stock/info?symbol=" + symbol)
-      .then((res) => {
-          setData(res || { results: [] });
-      })
+      .then((res) => setData(res || { results: [] }))
       .catch((err) => console.error("Error fetching chart data:", err));
   }
 
@@ -124,109 +138,119 @@ export default function DetailAction(req: Request) {
     }
   }, [nameAction, isAuthenticated, user]);
 
-useEffect(() => {
-  if (detail) {
-    setDataCleaned({
-      name: (name as string) || detail.name || (nameAction as string) || "-",
-      market_cap: detail.market_cap || "-",
-      number: detail.weighted_shares_outstanding || "-",
-    });
-  }
-}, [detail, nameAction, name]);
+  useEffect(() => {
+    if (detail) {
+      setDataCleaned({
+        name: (name as string) || detail.name || (nameAction as string) || "-",
+        market_cap: detail.market_cap || "-",
+        number: detail.weighted_shares_outstanding || "-",
+      });
+    }
+  }, [detail, nameAction, name]);
 
-const options = {
-    chart: { 
-      height: 500, 
+  const commonConfig = {
+    chart: {
+      height: 500,
       backgroundColor: 'transparent',
-      animation: false 
+      animation: false,
     },
     xAxis: {
       type: 'datetime',
       labels: { style: { color: '#888' } },
-      ordinal: true 
+      ordinal: true,
     },
     yAxis: {
-      labels: {
-        style: { color: '#888' },
-        format: '{value}$'
-      },
-      opposite: true
+      labels: { style: { color: '#888' }, format: '{value}$' },
+      opposite: true,
     },
-    rangeSelector: { 
+    rangeSelector: {
       enabled: true,
       selected: 3,
       inputDateFormat: lang === 'fr' ? '%e %B %Y' : '%B %e, %Y',
-      inputEditDateFormat: '%Y-%m-%d', 
-      inputBoxWidth: 100, 
-      
+      inputEditDateFormat: '%Y-%m-%d',
+      inputBoxWidth: 100,
       buttonTheme: {
         fill: 'none',
         stroke: 'none',
         r: 8,
         style: { color: '#888', fontWeight: '600' },
-        states: {
-          select: {
-            fill: '#f3ca3e',
-            style: { color: '#000' }
-          }
-        }
+        states: { select: { fill: '#f3ca3e', style: { color: '#000' } } },
       },
-      inputStyle: {
-        color: '#f3ca3e',
-        fontWeight: '700',
-        fontSize: '13px'
-      },
-      labelStyle: {
-        color: '#888',
-        textTransform: 'uppercase',
-        fontSize: '10px'
-      },
-      buttons: lang === "fr" ? [
-        { type: 'month', count: 1, text: '1m' },
-        { type: 'month', count: 3, text: '3m' },
-        { type: 'all', text: 'Tout' }
-      ] : [
-        { type: 'month', count: 1, text: '1m' },
-        { type: 'month', count: 3, text: '3m' },
-        { type: 'all', text: 'All' }
-      ]
+      inputStyle: { color: '#f3ca3e', fontWeight: '700', fontSize: '13px' },
+      labelStyle: { color: '#888', textTransform: 'uppercase', fontSize: '10px' },
+      buttons: lang === "fr"
+        ? [{ type: 'month', count: 1, text: '1m' }, { type: 'month', count: 3, text: '3m' }, { type: 'all', text: 'Tout' }]
+        : [{ type: 'month', count: 1, text: '1m' }, { type: 'month', count: 3, text: '3m' }, { type: 'all', text: 'All' }],
     },
     plotOptions: {
-      series: {
-        animation: false,
-        dataGrouping: { enabled: true }
-      }
+      series: { animation: false, dataGrouping: { enabled: true } },
     },
-    series: [{
-      name: nameAction || "Stock",
-      data: chartData,
-      color: '#f3ca3e',
-      tooltip: { 
-        valueDecimals: 2,
-        xDateFormat: lang === 'fr' ? '%A %e %B %Y' : '%A, %b %e, %Y'
-      }
-    }],
     navigator: { enabled: true },
     scrollbar: { enabled: false },
-    credits: { enabled: false }
-};
+    credits: { enabled: false },
+  };
+
+  const lineOptions = {
+    ...commonConfig,
+    series: [{
+      type: 'line',
+      name: nameAction || "Stock",
+      data: lineData,
+      color: '#f3ca3e',
+      tooltip: {
+        valueDecimals: 2,
+        xDateFormat: lang === 'fr' ? '%A %e %B %Y' : '%A, %b %e, %Y',
+      },
+    }],
+  };
+
+  const candleOptions = {
+    ...commonConfig,
+    series: [{
+      type: 'candlestick',
+      name: nameAction || "Stock",
+      data: candleData,
+      color: '#e74c3c',
+      upColor: '#2ecc71',
+      lineColor: '#e74c3c',
+      upLineColor: '#2ecc71',
+      tooltip: {
+        valueDecimals: 2,
+        xDateFormat: lang === 'fr' ? '%A %e %B %Y' : '%A, %b %e, %Y',
+      },
+    }],
+  };
+
+  const hasData = chartType === "line" ? lineData.length > 0 : candleData.length > 0;
+
+  const toggleBtnStyle = (active: boolean) => ({
+    padding: '6px 18px',
+    borderRadius: '20px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: '700' as const,
+    fontSize: '13px',
+    transition: 'all 0.15s ease',
+    backgroundColor: active ? '#f3ca3e' : '#f0f0f0',
+    color: active ? '#1a1a1a' : '#888',
+    boxShadow: active ? '0 2px 8px rgba(243,202,62,0.4)' : 'none',
+  });
 
   return (
     <>
       <Head>
         <title>InvestDays - {nameAction}</title>
       </Head>
-      
 
       <main className={homeStyles.pageContainer}>
         <div className={homeStyles.marketHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-             <div>
-                  <h1 className={homeStyles.marketTitle}>{nameAction as string}</h1>
-                  <p className={homeStyles.marketSub}>
-                    {dataCleaned.name} • {detail?.price ? `${detail.price.toFixed(2)}$` : "- $"}
-                  </p>
-             </div>
+            <div>
+              <h1 className={homeStyles.marketTitle}>{nameAction as string}</h1>
+              <p className={homeStyles.marketSub}>
+                {dataCleaned.name} • {detail?.price ? `${detail.price.toFixed(2)}$` : "- $"}
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -241,9 +265,9 @@ const options = {
                 </span>
               </div>
             </div>
-            <button 
-              className={homeStyles.buyButton} 
-              style={{ width: '140px' }} 
+            <button
+              className={homeStyles.buyButton}
+              style={{ width: '140px' }}
               onClick={() => setIsOpen(true)}
             >
               {t.buyBtn}
@@ -252,12 +276,23 @@ const options = {
         </div>
 
         <div className={homeStyles.assetCard} style={{ marginBottom: '30px', padding: '20px', minHeight: '500px' }}>
-          {chartReady && chartData.length > 0 ? (
+
+          {/* Toggle courbe / bougies */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <button onClick={() => setChartType("line")} style={toggleBtnStyle(chartType === "line")}>
+              📈 {t.line}
+            </button>
+            <button onClick={() => setChartType("candlestick")} style={toggleBtnStyle(chartType === "candlestick")}>
+              🕯️ {t.candle}
+            </button>
+          </div>
+
+          {chartReady && hasData ? (
             <HighchartsReact
-              key={`chart-${lang}-${nameAction}-${chartData.length}`} 
+              key={`chart-${lang}-${nameAction}-${chartType}-${lineData.length}`}
               highcharts={Highcharts}
               constructorType={"stockChart"}
-              options={options}
+              options={chartType === "line" ? lineOptions : candleOptions}
             />
           ) : (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', color: '#888' }}>
