@@ -31,18 +31,15 @@ export default function Login() {
 
 const handleLoginISEP = () => {
     setLoading(true);
-    
     const baseUrl = window.location.origin; 
     const serviceUrl = `${baseUrl}/api/auth/cas-callback`;
-    
-    const casLoginBase = process.env.NEXT_PUBLIC_CAS_LOGIN_URL;
+    const casLoginBase = "https://portail-ovh.isep.fr/cas/login";
  
     const finalUrl = `${casLoginBase}?service=${encodeURIComponent(serviceUrl)}`;
     
     console.log("Redirection vers :", finalUrl);
     window.location.href = finalUrl;
-};
-
+  };
   return (
     <>
       <Head><title>InvestDays - Connexion</title></Head>
