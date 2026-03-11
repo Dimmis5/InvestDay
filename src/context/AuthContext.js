@@ -2,92 +2,61 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 const AuthContext = createContext({
-  isAuthenticated: null,
-  login: (fetch, email, password, callback) => {},
-  register: (fetch, email, password, name, callback) => {},
-  logout: () => {},
+  isAuthenticated: false,
   user: null,
+  completeCasLogin: (userData) => {},
+  logout: () => {},
   reLogin: () => false,
 });
 
 function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   const [user, setUser] = useState(null);
   const router = useRouter();
 
   function reLogin() {
+    if (typeof window === "undefined") return false;
     try {
-      const lastUser = JSON.parse(window.sessionStorage.getItem("lastUser"));
-
-      if (lastUser?.token) {
-        setUser(lastUser);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        return false;
+      const stored = window.sessionStorage.getItem("lastUser");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.token) {
+          setUser(parsed);
+          setIsAuthenticated(true);
+          return true;
+        }
       }
     } catch (e) {
-      console.error(e);
+      return false;
     }
-  }
-  async function login(fetch, email, password, callback) {
-    try {
-      let result = await fetch.post("/api/auth/login", { email, password });
-
-      if (result?.email) {
-        setIsAuthenticated(true);
-        setUser(result);
-        window.sessionStorage.setItem("lastUser", JSON.stringify(result));
-        router.push("/");
-      }
-    } catch (e) {
-      callback(e);
-    }
+    return false;
   }
 
-  async function register(fetch, email, password, name, callback) {
-    try {
-      let result = await fetch.post("/api/auth/register", {
-        email,
-        password,
-        studentId: name, 
-        name: name 
-      });
-
-      if (result?.status === "success") {
-        await login(fetch, email, password, callback);
-      }
-      return result;
-    } catch (e) {
-      const errorMsg = e.response?.data?.message || e.message || e;
+  function completeCasLogin(userData) {
+    if (userData && userData.token) {
+      window.sessionStorage.setItem("lastUser", JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
       
-      if (callback) callback(errorMsg);
+      router.push("/").catch(() => {
+        window.location.href = "/";
+      });
     }
   }
 
   async function logout() {
-    console.warn("logout");
     window.sessionStorage.removeItem("lastUser");
-
     setIsAuthenticated(false);
-    router.push("/login");
+    setUser(null);
+    window.location.href = "/login";
   }
+
   useEffect(() => {
     reLogin();
-  }, [isAuthenticated]);
+  }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        login,
-        register,
-        logout,
-        user,
-        reLogin,
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, user, completeCasLogin, logout, reLogin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -97,16 +66,22 @@ const ProtectRoute = ({ children }) => {
   const { isAuthenticated, reLogin } = useAuthentification();
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    if (!isAuthenticated && router.asPath !== "/login" && !reLogin()) {
+    const isAuth = isAuthenticated || reLogin();
+    const path = router.pathname; 
+
+    if (!isAuth && path !== "/login") {
       router.push("/login");
+    } else if (isAuth && path === "/login") {
+      router.push("/");
     } else {
       setIsLoaded(true);
     }
-  }, [isAuthenticated, router.asPath]);
+  }, [isAuthenticated, router.pathname]);
 
-  return isLoaded ? children : "Loading...";
+  return (isLoaded || router.pathname === "/login") ? children : null;
 };
-const useAuthentification = () => useContext(AuthContext);
 
+const useAuthentification = () => useContext(AuthContext);
 export { AuthProvider, useAuthentification, ProtectRoute };

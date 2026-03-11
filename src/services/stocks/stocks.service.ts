@@ -8,9 +8,18 @@ export enum times {
   month = "month",
 }
 
+const CRYPTO_SYMBOLS = ["BTCUSD","ETHUSD","BNBUSD","SOLUSD","XRPUSD","ADAUSD","DOGEUSD","AVAXUSD"];
+const FOREX_SYMBOLS  = ["EURUSD","GBPUSD","USDJPY","USDCHF","AUDUSD","USDCAD"];
+
+function getAssetType(symbol: string): "crypto" | "forex" | "stock" {
+  const s = symbol.toUpperCase();
+  if (CRYPTO_SYMBOLS.includes(s)) return "crypto";
+  if (FOREX_SYMBOLS.includes(s))  return "forex";
+  return "stock";
+}
+
 async function search(term: string, userId: number, ip: string): Promise<StockApi[]> {
   try {
-    // Lancer les 3 recherches en parallèle
     const [stockRes, cryptoRes, forexRes] = await Promise.allSettled([
       fetch(`https://api.finage.co.uk/fnd/search/market/us/${encodeURIComponent(term)}?limit=10&apikey=${FINAGE_API_KEY}`),
       fetch(`https://api.finage.co.uk/fnd/search/cryptocurrency/${encodeURIComponent(term)}?limit=5&apikey=${FINAGE_API_KEY}`),
@@ -19,7 +28,6 @@ async function search(term: string, userId: number, ip: string): Promise<StockAp
 
     const matches: StockApi[] = [];
 
-    // Stocks
     if (stockRes.status === "fulfilled") {
       const data = await stockRes.value.json();
       if (data?.results && Array.isArray(data.results)) {
@@ -29,7 +37,6 @@ async function search(term: string, userId: number, ip: string): Promise<StockAp
       }
     }
 
-    // Crypto
     if (cryptoRes.status === "fulfilled") {
       const data = await cryptoRes.value.json();
       if (data?.results && Array.isArray(data.results)) {
@@ -39,7 +46,6 @@ async function search(term: string, userId: number, ip: string): Promise<StockAp
       }
     }
 
-    // Forex
     if (forexRes.status === "fulfilled") {
       const data = await forexRes.value.json();
       if (data?.results && Array.isArray(data.results)) {
@@ -57,29 +63,47 @@ async function search(term: string, userId: number, ip: string): Promise<StockAp
 }
 
 async function getLastPrice(symbol: string, userId: number, ip: string): Promise<any> {
-  const url = `https://api.finage.co.uk/last/stock/${symbol.toUpperCase()}?apikey=${FINAGE_API_KEY}`;
+  const type = getAssetType(symbol);
 
   try {
-    const response = await fetch(url);
-    const data = await response.json();
+    if (type === "crypto") {
+      const url = `https://api.finage.co.uk/last/crypto/${symbol.toLowerCase()}?apikey=${FINAGE_API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data?.price) {
+        return { results: [{ price: data.price, symbol: symbol.toUpperCase() }] };
+      }
+    } else if (type === "forex") {
+      const url = `https://api.finage.co.uk/last/forex/${symbol.toUpperCase()}?apikey=${FINAGE_API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      const price = data?.ask || data?.bid || ((data?.ask + data?.bid) / 2);
+      if (price) {
+        return { results: [{ price, symbol: symbol.toUpperCase() }] };
+      }
+    } else {
+      // Stock
+      const url = `https://api.finage.co.uk/last/stock/${symbol.toUpperCase()}?apikey=${FINAGE_API_KEY}`;
+      const response = await fetch(url);
+      const data = await response.json();
 
-    if (data && (data.p || data.ask || data.bid)) {
-      const price = data.p || ((data.ask + data.bid) / 2) || data.ask || data.bid;
-      return { results: [{ price, symbol: symbol.toUpperCase() }] };
-    }
+      if (data && (data.p || data.ask || data.bid)) {
+        const price = data.p || ((data.ask + data.bid) / 2) || data.ask || data.bid;
+        return { results: [{ price, symbol: symbol.toUpperCase() }] };
+      }
 
-    const today = new Date().toISOString().split('T')[0];
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const aggUrl = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&apikey=${FINAGE_API_KEY}`;
-    
-    const aggResponse = await fetch(aggUrl);
-    const aggData = await aggResponse.json();
-    const results = aggData?.results;
-
-    if (Array.isArray(results) && results.length > 0) {
-      const last = results[results.length - 1];
-      if (last?.c) {
-        return { results: [{ price: last.c, symbol: symbol.toUpperCase() }] };
+      // Fallback agrégat stock
+      const today = new Date().toISOString().split('T')[0];
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const aggUrl = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&apikey=${FINAGE_API_KEY}`;
+      const aggResponse = await fetch(aggUrl);
+      const aggData = await aggResponse.json();
+      const results = aggData?.results;
+      if (Array.isArray(results) && results.length > 0) {
+        const last = results[results.length - 1];
+        if (last?.c) {
+          return { results: [{ price: last.c, symbol: symbol.toUpperCase() }] };
+        }
       }
     }
   } catch (error) {
@@ -91,7 +115,8 @@ async function getLastPrice(symbol: string, userId: number, ip: string): Promise
 
 async function getRecentPrices(symbol: string, time: times = times.day, userId: number, ip: string, _unused?: boolean): Promise<any> {
   const today = new Date().toISOString().split('T')[0];
-  
+  const type = getAssetType(symbol);
+
   let fromDate: string;
   let multiplier: string;
   let timespan: string;
@@ -115,7 +140,9 @@ async function getRecentPrices(symbol: string, time: times = times.day, userId: 
       break;
   }
 
-  const url = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/${multiplier}/${timespan}/${fromDate}/${today}?limit=500&sort=asc&apikey=${FINAGE_API_KEY}`;
+  // ✅ Endpoint selon le type d'actif
+  const baseEndpoint = type === "crypto" ? "crypto" : type === "forex" ? "forex" : "stock";
+  const url = `https://api.finage.co.uk/agg/${baseEndpoint}/${symbol.toUpperCase()}/${multiplier}/${timespan}/${fromDate}/${today}?limit=500&sort=asc&apikey=${FINAGE_API_KEY}`;
 
   try {
     const response = await fetch(url);
@@ -135,7 +162,7 @@ async function getRecentPrices(symbol: string, time: times = times.day, userId: 
 async function getDetailsStock(symbol: string, userId: number, ip: string): Promise<any> {
   return {
     results: {
-      name: symbol.toUpperCase(), // ← c'est ça le problème, il retourne juste le symbole
+      name: symbol.toUpperCase(),
       market_cap: null,
       weighted_shares_outstanding: null,
       branding: { logo_url: null },
@@ -153,12 +180,13 @@ async function getLogoStock(link: string, userId: number, ip: string): Promise<a
   }
 }
 
-
 async function getPreviousClose(symbol: string, userId: number, ip: string): Promise<any> {
   const today = new Date().toISOString().split('T')[0];
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  
-  const url = `https://api.finage.co.uk/agg/stock/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&sort=asc&apikey=${FINAGE_API_KEY}`;
+  const type = getAssetType(symbol);
+  const baseEndpoint = type === "crypto" ? "crypto" : type === "forex" ? "forex" : "stock";
+
+  const url = `https://api.finage.co.uk/agg/${baseEndpoint}/${symbol.toUpperCase()}/1/day/${weekAgo}/${today}?limit=5&sort=asc&apikey=${FINAGE_API_KEY}`;
 
   try {
     const response = await fetch(url);
@@ -187,8 +215,7 @@ const stocksService = {
   getDetailsStock,
   getLastPrice,
   getLogoStock,
-  getPreviousClose, 
+  getPreviousClose,
 };
-
 
 export default stocksService;

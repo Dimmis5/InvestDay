@@ -1,185 +1,111 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useAuthentification } from "../context/AuthContext";
-import homeStyles from "../styles/Home.module.css";
-import loginStyles from "../styles/Login.module.css";
-//import logo from "src/public/assets/logo.webp";
 import Image from "next/image";
-import Partners from "../components/Partners.component";
-import { useFetch } from "../context/FetchContext.js";
 import { toast } from "react-toastify";
+import { useRouter } from 'next/router';
+import styles from "../styles/Login.module.css";
+
 export default function Login() {
-  const fetch = useFetch();
-  const { login, register } = useAuthentification();
+  const router = useRouter();
+  const { completeCasLogin, isAuthenticated } = useAuthentification();
   const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [emailR, setEmailRegister] = useState("");
-  const [passwordR, setPasswordRegister] = useState("");
-  const [name, setName] = useState("");
-  const [toggleLogin, setToggle] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function handleError(error: string) {
-    setError("Identifiants invalides");
-    toast.error(
-      "Une erreur est survenue, vérifiez vos identifiants, si l'erreur persiste contactez nous sur notre discord"
-    );
-  }
-  async function handleLogin(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    if (email === "" || password === "")
-      return setError("Veuillez remplir tous les champs");
-
-    // check is email is valid
-    if (!email.includes("@")) return setError("Email invalide");
-
-    login(fetch, email, password, handleError);
-  }
-
-  async function handleRegister(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    
-    if (emailR === "" || passwordR === "" || name === "")
-      return setError("Veuillez remplir tous les champs");
-
-    const isepIdRegex = /^\d{5}$/;
-    if (!isepIdRegex.test(name)) {
-      return setError("L'identifiant ISEP doit être composé de 5 chiffres");
+  useEffect(() => {
+    if (router.isReady && router.query.user) {
+      try {
+        const rawData = Array.isArray(router.query.user) ? router.query.user[0] : router.query.user;
+        const userData = JSON.parse(decodeURIComponent(rawData));
+        completeCasLogin(userData);
+        toast.success("Connexion réussie !");
+      } catch (e) {
+        setError("Erreur lors de la lecture de la session.");
+      }
     }
+  }, [router.isReady, router.query]);
 
-    if (!emailR.includes("@eleve.isep.fr") && !emailR.includes("@isep.fr"))
-      return setError("Merci d'utiliser votre mail ISEP");
+  useEffect(() => {
+    if (isAuthenticated) router.push("/");
+  }, [isAuthenticated]);
 
-    if (passwordR.length < 8)
-      return setError("Le mot de passe doit contenir au moins 8 caractères");
-
-    register(fetch, emailR, passwordR, name, handleError);
-  }
-
-  function toggleLoginState() {
-    setToggle((prevState) => !prevState);
-    setError("");
-  }
-
+  const handleLoginISEP = () => {
+    const baseUrl = window.location.origin;
+    const serviceUrl = `${baseUrl}/api/auth/cas-callback`;
+    
+    // Utilise l'URL du .env
+    const casLoginBase = process.env.NEXT_PUBLIC_CAS_LOGIN_URL;
+    
+    window.location.href = `${casLoginBase}?service=${encodeURIComponent(serviceUrl)}`;
+  };
 
   return (
     <>
-      <Head>
-        <title>InvestDays - Connexion</title>
-        <meta name="description" content="Page d'accueil" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon3.ico" />
-      </Head>
-      <main className={homeStyles.pageContainer}>
-        <div className={loginStyles.container}>
-          <div className={loginStyles.imageDessus}>
-            <Image src="/assets/INVEST.png" width={300} height={300} alt="logo" />
+      <Head><title>InvestDays - Connexion</title></Head>
+
+      <div className={styles.page}>
+
+        {/* Décoration fond */}
+        <div className={styles.bgCircle1} />
+        <div className={styles.bgCircle2} />
+
+        <div className={styles.wrapper}>
+
+          {/* Logo au dessus */}
+          <div className={styles.logoWrap}>
+            <Image src="/assets/INVEST.png" width={210} height={210} alt="InvestDays" priority />
           </div>
-          <div
-            className={`${loginStyles.main} ${
-              toggleLogin ? loginStyles.active : ""
-            }`}
-          >
-            <div className={loginStyles.login}>
-              <form>
-                <label
-                  onClick={toggleLoginState}
-                  className={`${toggleLogin ? loginStyles.inactive : ""}`}
-                >
-                  Connexion
-                </label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="Mail ISEP"
-                />
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="Mot de passe"
-                />
-                <button
-                  type="submit"
-                  value="Submit"
-                  onClick={handleLogin}
-                  className={loginStyles.button}
-                >
-                  Connexion
-                </button>
-                {error && <p className={loginStyles.error}>{error}</p>}
-              </form>
+
+          {/* Carte */}
+          <div className={styles.card}>
+            <div className={styles.cardTop}>
+              <h1 className={styles.appName}>Invest Days</h1>
+              <p className={styles.tagline}>Simulez. Investissez. Progressez.</p>
             </div>
-            <div
-              className={`${loginStyles.signin} ${
-                toggleLogin ? loginStyles.active : ""
-              }`}
-            >
-              <form>
-                <label
-                  onClick={toggleLoginState}
-                  className={`${toggleLogin ? loginStyles.active : ""}`}
-                >
-                  Inscription
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  type="text"
-                  name="nom"
-                  id="nom"
-                  placeholder="Identifiant ISEP"
-                />
-                <input
-                  value={emailR}
-                  onChange={(e) => setEmailRegister(e.target.value)}
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="Mail ISEP"
-                />
-                <input
-                  value={passwordR}
-                  onChange={(e) => setPasswordRegister(e.target.value)}
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="Mot de passe (min. 8 caractères)"
-                />
-                <button
-                  type="submit"
-                  value="Submit"
-                  onClick={handleRegister}
-                  className={loginStyles.button}
-                >
-                  Inscription
-                </button>
-                {error && (
-                  <p className={loginStyles.error} style={{ color: "white" }}>
-                    {error}
-                  </p>
+
+            <div className={styles.divider} />
+
+            <div className={styles.cardBottom}>
+              <p className={styles.hint}>Connectez-vous avec votre compte ISEP</p>
+
+              <button
+                className={styles.loginBtn}
+                onClick={handleLoginISEP}
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className={styles.spinner} />
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Portail ISEP
+                  </>
                 )}
-              </form>
+              </button>
+
+              {error && <p className={styles.error}>{error}</p>}
             </div>
           </div>
 
-          <div style={{ marginTop: "20px", textAlign: "center", width: "100%" }}>
-             <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: "10px" }}>Powered by</p>
-             <a href="https://finage.co.uk" target="_blank" rel="noreferrer">
-                <img 
-                  src="/assets/partners/finage_logo.svg" 
-                  alt="Finage Logo" 
-                  style={{ width: "200px", height: "auto", opacity: "0.8" }}
-                />
-             </a>
+                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <span style={{ fontSize: '12px', opacity: 0.7 }}></span>
+            <a href="https://finage.co.uk" target="_blank" rel="noreferrer">
+              <img 
+                src="/assets/partners/finage_logo.svg" 
+                alt="Finage Logo" 
+                style={{ height: '30px', filter: 'grayscale(100%) brightness(1.5)', opacity: 0.8 }}
+                onMouseOver={(e) => e.currentTarget.style.filter = 'grayscale(0%)'}
+                onMouseOut={(e) => e.currentTarget.style.filter = 'grayscale(100%) brightness(1.5)'}
+              />
+            </a>
           </div>
+          <p className={styles.footer}>InvestDays © 2025 — ISEP</p>
         </div>
-      </main>
+      </div>
     </>
   );
 }

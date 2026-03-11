@@ -58,7 +58,7 @@ export default function Contact() {
             <div className={contactStyles.infoBox}>
               <h3>Communauté</h3>
               <p>Rejoignez les traders sur Discord pour une aide instantanée.</p>
-              <a href="https://discord.gg/FBKyc87pHh" target="_blank" rel="noreferrer" className={contactStyles.discordBtn}>
+              <a href="https://discord.gg/6sZcW7rEbu" target="_blank" rel="noreferrer" className={contactStyles.discordBtn}>
                 Ouvrir Discord
               </a>
             </div>

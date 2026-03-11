@@ -14,13 +14,19 @@ async function login(req: NextApiRequest, res: NextApiResponse<any>) {
   }
 
   const { email, password } = req.body;
-  if (!email || !password) throw "Email and password are required";
+  if (!email || !password) throw "L'email et le mot de passe sont requis";
+
 
   const user = await prisma.user.findFirst({ where: { email } });
-  if (!user) throw "Username or password is incorrect";
+  
+  if (!user) throw "Identifiants incorrects";
 
   const pass = await bcrypt.compare(password, user.password);
-  if (!pass) throw "Username or password is incorrect";
+  if (!pass) throw "Identifiants incorrects";
+
+  if (user.emailVerified === false) {
+    throw "Ton compte n'est pas encore activé. Clique sur le lien envoyé sur ton mail ISEP pour pouvoir te connecter.";
+  }
 
   const token = jwt.sign(
     { sub: user.id, isAdmin: user.isAdmin },

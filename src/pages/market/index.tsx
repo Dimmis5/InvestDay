@@ -10,12 +10,12 @@ import marketStyles from "../../styles/Market.module.css";
 import TableSearch from "../../components/TableSearch.component.jsx";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 
-
 export default function Market() {
   const { wallets, selectedId, selectWallet } = useWallet();
-  const { lang } = useLanguage(); 
+  const { lang } = useLanguage();
   const [data, setData] = useState([] as any);
   const [input, setInput] = useState("");
+  const [marketFilter, setMarketFilter] = useState("all");
   const fetch = useFetch();
 
   const translations = {
@@ -26,7 +26,11 @@ export default function Market() {
       cashLabel: "Disponible",
       portfolioLabel: "Portfolio n°",
       placeholder: "Tapez le nom d'une entreprise...",
-      noWarrants: "warrant"
+      noWarrants: "warrant",
+      filterAll: "Tous",
+      filterStocks: "Actions",
+      filterCrypto: "Crypto",
+      filterForex: "Forex",
     },
     en: {
       headTitle: "InvestTrade - Markets",
@@ -35,23 +39,44 @@ export default function Market() {
       cashLabel: "Available",
       portfolioLabel: "Portfolio #",
       placeholder: "Type a company name...",
-      noWarrants: "warrant"
+      noWarrants: "warrant",
+      filterAll: "All",
+      filterStocks: "Stocks",
+      filterCrypto: "Crypto",
+      filterForex: "Forex",
     }
   };
 
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
   const defaultStocks = [
-    { symbol: "AAPL", name: "Apple Inc." },
-    { symbol: "MSFT", name: "Microsoft Corporation" },
-    { symbol: "GOOGL", name: "Alphabet Inc." },
-    { symbol: "TSLA", name: "Tesla, Inc." },
-    { symbol: "AMZN", name: "Amazon.com, Inc." },
-    { symbol: "META", name: "Meta Platforms, Inc." },
-    { symbol: "NVDA", name: "NVIDIA Corporation" },
-    { symbol: "JPM", name: "JPMorgan Chase & Co." },
-    { symbol: "V", name: "Visa Inc." },
-    { symbol: "WMT", name: "Walmart Inc." },
+    // Actions
+    { symbol: "AAPL",  name: "Apple Inc.",             market: "stocks" },
+    { symbol: "MSFT",  name: "Microsoft Corporation",  market: "stocks" },
+    { symbol: "GOOGL", name: "Alphabet Inc.",           market: "stocks" },
+    { symbol: "TSLA",  name: "Tesla, Inc.",             market: "stocks" },
+    { symbol: "AMZN",  name: "Amazon.com, Inc.",        market: "stocks" },
+    { symbol: "META",  name: "Meta Platforms, Inc.",    market: "stocks" },
+    { symbol: "NVDA",  name: "NVIDIA Corporation",      market: "stocks" },
+    { symbol: "JPM",   name: "JPMorgan Chase & Co.",    market: "stocks" },
+    { symbol: "V",     name: "Visa Inc.",               market: "stocks" },
+    { symbol: "WMT",   name: "Walmart Inc.",            market: "stocks" },
+    // Crypto
+    { symbol: "BTCUSD",  name: "Bitcoin",          market: "crypto" },
+    { symbol: "ETHUSD",  name: "Ethereum",         market: "crypto" },
+    { symbol: "BNBUSD",  name: "BNB",              market: "crypto" },
+    { symbol: "SOLUSD",  name: "Solana",           market: "crypto" },
+    { symbol: "XRPUSD",  name: "XRP",              market: "crypto" },
+    { symbol: "ADAUSD",  name: "Cardano",          market: "crypto" },
+    { symbol: "DOGEUSD", name: "Dogecoin",         market: "crypto" },
+    { symbol: "AVAXUSD", name: "Avalanche",        market: "crypto" },
+    // Forex
+    { symbol: "EURUSD", name: "Euro / US Dollar",          market: "forex" },
+    { symbol: "GBPUSD", name: "British Pound / US Dollar", market: "forex" },
+    { symbol: "USDJPY", name: "US Dollar / Japanese Yen",  market: "forex" },
+    { symbol: "USDCHF", name: "US Dollar / Swiss Franc",   market: "forex" },
+    { symbol: "AUDUSD", name: "Australian Dollar / USD",   market: "forex" },
+    { symbol: "USDCAD", name: "US Dollar / Canadian Dollar", market: "forex" },
   ];
 
   useEffect(() => {
@@ -77,10 +102,23 @@ export default function Market() {
     }
   };
 
-  const list = (data && data.length > 0) 
-    ? data.filter((item: any) => !item.name?.toLowerCase().includes(t.noWarrants))
-          .map((item: any) => ({ symbol: item.symbol, name: item.name }))
+  const rawList = (data && data.length > 0)
+    ? data
+        .filter((item: any) => !item.name?.toLowerCase().includes(t.noWarrants))
+        .map((item: any) => ({ symbol: item.symbol, name: item.name, market: item.market || "stocks" }))
     : defaultStocks;
+
+  // Filtre par marché
+  const list = marketFilter === "all"
+    ? rawList
+    : rawList.filter((item: any) => item.market === marketFilter);
+
+  const filters = [
+    { key: "all",    label: t.filterAll },
+    { key: "stocks", label: t.filterStocks },
+    { key: "crypto", label: t.filterCrypto },
+    { key: "forex",  label: t.filterForex },
+  ];
 
   return (
     <>
@@ -106,7 +144,8 @@ export default function Market() {
           </div>
         </div>
 
-        <div className={homeStyles.filterBar} style={{ marginBottom: '30px' }}>
+        {/* Filtres portefeuille */}
+        <div className={homeStyles.filterBar} style={{ marginBottom: '20px' }}>
           {wallets.map((_, index) => (
             <button
               key={index}
@@ -118,7 +157,8 @@ export default function Market() {
           ))}
         </div>
 
-        <div className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 40px' }}>
+        {/* Barre de recherche */}
+        <div className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 20px' }}>
           <div style={{ borderRadius: '15px', border: '2px solid #f3ca3e', backgroundColor: 'white', display: 'flex', alignItems: 'center', padding: '0 15px', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <circle cx="11" cy="11" r="8" />
@@ -133,6 +173,30 @@ export default function Market() {
               style={{ height: '50px', border: 'none', width: '100%', paddingLeft: '0', outline: 'none', fontSize: '16px', backgroundColor: 'transparent' }}
             />
           </div>
+        </div>
+
+        {/* Filtres marché */}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px', flexWrap: 'wrap' }}>
+          {filters.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setMarketFilter(f.key)}
+              style={{
+                padding: '8px 20px',
+                borderRadius: '20px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: '700',
+                fontSize: '13px',
+                transition: 'all 0.15s ease',
+                backgroundColor: marketFilter === f.key ? '#f3ca3e' : '#f0f0f0',
+                color: marketFilter === f.key ? '#1a1a1a' : '#888',
+                boxShadow: marketFilter === f.key ? '0 2px 8px rgba(243,202,62,0.4)' : 'none',
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
 
         <div className={homeStyles.assetCard} style={{ padding: '0', overflow: 'hidden', borderRadius: '15px' }}>
