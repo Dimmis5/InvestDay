@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 const AuthContext = createContext({
   isAuthenticated: null,
   login: (fetch, email, password, callback) => {},
-  register: (fetch, email, password, name, callback) => {},
+  register: (fetch, email, password, name, onSuccess, onError) => {}, 
   logout: () => {},
   user: null,
   reLogin: () => false,
@@ -31,7 +31,7 @@ function AuthProvider({ children }) {
       console.error(e);
     }
   }
-  async function login(fetch, email, password, callback) {
+async function login(fetch, email, password, callback) {
     try {
       let result = await fetch.post("/api/auth/login", { email, password });
 
@@ -42,11 +42,12 @@ function AuthProvider({ children }) {
         router.push("/");
       }
     } catch (e) {
-      callback(e);
+      const errorMsg = e.response?.data?.message || e.message || "Erreur de connexion";
+      if (callback) callback(errorMsg);
     }
   }
 
-  async function register(fetch, email, password, name, callback) {
+  async function register(fetch, email, password, name, onSuccess, onError) {
     try {
       let result = await fetch.post("/api/auth/register", {
         email,
@@ -56,13 +57,12 @@ function AuthProvider({ children }) {
       });
 
       if (result?.status === "success") {
-        await login(fetch, email, password, callback);
+        if (onSuccess) onSuccess(); 
       }
       return result;
     } catch (e) {
-      const errorMsg = e.response?.data?.message || e.message || e;
-      
-      if (callback) callback(errorMsg);
+      const errorMsg = e.response?.data?.message || e.message || "Erreur d'inscription";
+      if (onError) onError(errorMsg);
     }
   }
 
