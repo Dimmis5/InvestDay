@@ -132,7 +132,7 @@ async function getRecentPrices(
 }
 
 
-async function getDetailsStock(symbol: string) {
+async function getDetailsStock(symbol: string, userId?: number, ip?: string) {
   return { results: { name: symbol.toUpperCase(), branding: { logo_url: null } } };
 }
 
