@@ -17,7 +17,7 @@ export default function DetailAction(req: Request) {
   const [data, setData] = useState<any>({ results: [] });
   const [isOpen, setIsOpen] = useState(false);
   const [detail, setDetail] = useState<any>({});
-  const [chartReady, setChartReady] = useState(false);
+  const [chartReady, setChartReady] = useState(true);
   const [chartType, setChartType] = useState<"line" | "candlestick">("line");
   const [loadingChart, setLoadingChart] = useState(true);
 
@@ -56,21 +56,6 @@ export default function DetailAction(req: Request) {
   const lineData = useMemo(() => (data?.results || []).map((i: any) => [Number(i.t), i.c]), [data]);
   const candleData = useMemo(() => (data?.results || []).map((i: any) => [Number(i.t), i.o ?? i.c, i.h ?? i.c, i.l ?? i.c, i.c]), [data]);
 
-  useEffect(() => {
-    const initHC = async () => {
-      if (typeof window !== "undefined") {
-        try {
-          const Exporting = await import("highcharts/modules/exporting");
-          const factory = (Exporting as any).default || Exporting;
-          if (typeof factory === 'function') factory(Highcharts);
-          setChartReady(true);
-        } catch (e) {
-          setChartReady(true);
-        }
-      }
-    };
-    initHC();
-  }, []);
 
   async function fetchDetail(symbol: string) {
     try {
@@ -121,6 +106,9 @@ export default function DetailAction(req: Request) {
   const commonConfig: any = {
     chart: { height: 500, backgroundColor: 'transparent', animation: false },
     accessibility: { enabled: false },
+        exporting: {
+      enabled: false
+    },
     xAxis: { type: 'datetime', labels: { style: { color: '#888' } }, ordinal: true },
     yAxis: { labels: { style: { color: '#888' }, format: '{value}$' }, opposite: true, gridLineColor: '#f5f5f5' },
     rangeSelector: {
@@ -141,7 +129,7 @@ export default function DetailAction(req: Request) {
     navigator: { enabled: true, maskFill: 'rgba(243, 202, 62, 0.05)', series: { color: '#f3ca3e' } },
     credits: { enabled: false },
     plotOptions: {
-      line: { color: '#f3ca3e', lineWidth: 2 }, // Force le jaune pour toutes les lignes
+      line: { color: '#f3ca3e', lineWidth: 2 },
       series: { animation: false }
     }
   };
