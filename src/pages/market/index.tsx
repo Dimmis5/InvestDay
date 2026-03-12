@@ -70,38 +70,39 @@ export default function Market() {
 
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
-  const loadSymbols = useCallback(async (filter: string, p: number) => {
-    setLoading(true);
-    try {
-      if (filter === "all") {
-        const [stocksRes, cryptoRes, forexRes] = await Promise.allSettled([
-          fetch.get(`/api/stock/symbols?type=us-stock&page=${p}`),
-          fetch.get(`/api/stock/symbols?type=crypto&page=${p}`),
-          fetch.get(`/api/stock/symbols?type=forex&page=${p}`),
-        ]);
+const loadSymbols = useCallback(async (filter: string, p: number) => {
+  setLoading(true);
+  try {
+    if (filter === "all") {
+      const [stocksRes, cryptoRes, forexRes] = await Promise.allSettled([
+        fetch.get(`/api/stock/symbols?type=us-stock&page=${p}&limit=10`),
+        fetch.get(`/api/stock/symbols?type=crypto&page=${p}&limit=10`),
+        fetch.get(`/api/stock/symbols?type=forex&page=${p}&limit=10`),
+      ]);
 
-        const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 4) : [];
-        const crypto = cryptoRes.status === "fulfilled" ? (cryptoRes.value?.symbols || []).slice(0, 3) : [];
-        const forex  = forexRes.status  === "fulfilled" ? (forexRes.value?.symbols  || []).slice(0, 3) : [];
+      const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 8) : [];
+      const crypto = cryptoRes.status === "fulfilled" ? (cryptoRes.value?.symbols || []).slice(0, 6) : [];
+      const forex  = forexRes.status  === "fulfilled" ? (forexRes.value?.symbols  || []).slice(0, 6) : [];
 
-        const combined = [...stocks, ...crypto, ...forex];
-        setSymbols(combined);
-        setHasMore(combined.length > 0);
-      } else {
-        const type = MARKET_TO_TYPE[filter] || "us-stock";
-        const res = await fetch.get(`/api/stock/symbols?type=${type}&page=${p}`);
-        const list = (res?.symbols || []).slice(0, 10);
-        setSymbols(list);
-        setHasMore((res?.symbols || []).length > 0);
-      }
-    } catch (err) {
-      console.error("Load symbols error:", err);
-      setSymbols([]);
-      setHasMore(false);
-    } finally {
-      setLoading(false);
+      const combined = [...stocks, ...crypto, ...forex];
+      setSymbols(combined);
+      setHasMore(combined.length > 0);
+    } else {
+      const type = MARKET_TO_TYPE[filter] || "us-stock";
+      const res = await fetch.get(`/api/stock/symbols?type=${type}&page=${p}&limit=20`);
+      
+      const list = (res?.symbols || []).slice(0, 20); 
+      setSymbols(list);
+      setHasMore((res?.symbols || []).length > 0);
     }
-  }, [fetch]);
+  } catch (err) {
+    console.error("Load symbols error:", err);
+    setSymbols([]);
+    setHasMore(false);
+  } finally {
+    setLoading(false);
+  }
+}, [fetch]);
 
   useEffect(() => {
     if (!input.trim()) {
