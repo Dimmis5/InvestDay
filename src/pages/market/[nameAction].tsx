@@ -230,16 +230,23 @@ export default function DetailAction(req: Request) {
               options={{
                 ...commonConfig, 
                 series: [
-                  chartType === "line" 
-                    ? { 
-                        type: 'line', 
-                        name: nameAction, 
-                        data: lineData, 
-                        color: '#f3ca3e',
-                        lineColor: '#f3ca3e', 
-                        lineWidth: 2, 
-                        tooltip: { valueDecimals: 4 } 
-                      }
+              chartType === "line" 
+                ? { 
+                    type: 'area',  
+                    name: nameAction, 
+                    data: lineData, 
+                    color: '#f3ca3e',
+                    lineColor: '#f3ca3e',
+                    lineWidth: 2,
+                    fillColor: {
+                      linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                      stops: [
+                        [0, 'rgba(243, 202, 62, 0.3)'],  
+                        [1, 'rgba(243, 202, 62, 0.0)'], 
+                      ]
+                    },
+                    tooltip: { valueDecimals: 4 } 
+                  }
                     : { 
                         type: 'candlestick', 
                         name: nameAction, 
