@@ -77,7 +77,10 @@ function Popup({
   const executeOrder = () => {
     let quantity = Number(count);
     if (quantity <= 0) {
-      toast.error(t.errQty); // Toast traduit
+      toast.error(t.errQty, {
+        className: PopupStyles.toastError,
+        progressClassName: PopupStyles.toastProgressError,
+      });
       return;
     }
 
@@ -88,12 +91,20 @@ function Popup({
       selling: sell ? "true" : "false",
     };
     
-    fetch.post("/api/transactions/", payload)
+    fetch.post("/api/transactions", payload)
       .then(() => {
-        toast.success(t.successOrder); // Toast traduit
+        toast.success(t.successOrder, {
+          className: PopupStyles.toastSuccess,
+          progressClassName: PopupStyles.toastProgressSuccess,
+        });
         close();
       })
-      .catch(() => toast.error(t.errOrder)); // Toast traduit
+      .catch(() => {
+        toast.error(t.errOrder, {
+          className: PopupStyles.toastError,
+          progressClassName: PopupStyles.toastProgressError,
+        });
+      });
   };
 
   if (!open) return null;

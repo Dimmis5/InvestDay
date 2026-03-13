@@ -18,7 +18,10 @@ export default function Login() {
         const rawData = Array.isArray(router.query.user) ? router.query.user[0] : router.query.user;
         const userData = JSON.parse(decodeURIComponent(rawData));
         completeCasLogin(userData);
-        toast.success("Connexion réussie !");
+        toast.success("Connexion réussie !", {
+          className: styles.customToast,
+          progressClassName: styles.customProgress,
+        });
       } catch (e) {
         setError("Erreur lors de la lecture de la session.");
       }

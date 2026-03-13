@@ -219,3 +219,28 @@
     height: 200px;
   }
 }
+
+
+
+.customToast {
+  background-color: var(--quatrieme) !important; 
+  color: var(--clrSelected) !important;         
+  border: 2px solid var(--premier) !important;  
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 15px rgba(243, 202, 62, 0.2) !important;
+}
+
+.customToast :global(.Toastify__toast-icon svg) {
+  fill: var(--premier) !important;
+}
+
+.customProgress {
+  background: var(--premier) !important; 
+  height: 4px !important;
+}
+
+.customToast :global(.Toastify__toast-body) {
+  font-family: inherit;
+  font-size: 0.95rem;
+}
