@@ -1,26 +1,45 @@
+/* ─────────────────────────────────────────
+   BACKDROP (Fond flouté)
+───────────────────────────────────────── */
 .modalBackdrop {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.6); /* Plus sombre pour faire ressortir la modale */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
-  backdrop-filter: blur(2px);
+  z-index: 1000;
+  backdrop-filter: blur(6px); /* Flou plus prononcé pour le côté premium */
+  animation: fadeIn 0.3s ease;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────
+   MODALE PRINCIPALE
+───────────────────────────────────────── */
 .modal {
-  background-color: white;
+  background-color: #ffffff;
   padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 24px; /* Coins plus arrondis */
+  box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 450px;
-  z-index: 101;
+  max-width: 420px;
+  z-index: 1001;
   position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modalContent {
@@ -29,174 +48,195 @@
   align-items: center;
 }
 
-.modalTitle {
-  font-size: 1.8rem;
-  font-weight: 600;
+.modalTitle h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
   text-align: center;
-  margin-bottom: 8px;
+  margin: 0;
   color: #1a1a1a;
+  letter-spacing: -0.5px;
 }
 
 .modalSubtitle {
-  font-size: 1rem;
-  color: #666;
+  display: block;
+  font-size: 0.9rem;
+  color: #64748b;
   text-align: center;
-  margin-bottom: 25px;
+  margin-top: 5px;
+  margin-bottom: 30px;
+  font-weight: 500;
 }
 
-/* --- WRAPPER DU COMPTEUR --- */
+/* ─────────────────────────────────────────
+   WRAPPER DU COMPTEUR (Sélecteur de quantité)
+───────────────────────────────────────── */
 .inputNumberWrapper {
-  margin: 20px 0;
+  margin: 10px 0 25px 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0;
+  background-color: #f8fafc; /* Fond léger pour le sélecteur */
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .inputNumberWrapper button {
-  background-color: #f0f2f5;
-  color: #333;
-  font-size: 1.2rem;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 1.4rem;
   font-weight: bold;
-  width: 45px;
-  height: 45px;
-  border: 1px solid #e0e0e0;
+  width: 50px;
+  height: 50px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px; /* Boutons internes arrondis */
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .inputNumberWrapper button:hover {
-  background-color: #e4e6e9;
+  background-color: #f1f5f9;
+  transform: translateY(-1px);
 }
 
-.inputNumberWrapper button.decrease {
-  border-radius: 10px 0 0 10px;
-}
-
-.inputNumberWrapper button.increase {
-  border-radius: 0 10px 10px 0;
+.inputNumberWrapper button:active {
+  transform: translateY(0);
 }
 
 .inputNumberWrapper input {
   width: 100px;
-  height: 45px;
-  border-top: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-  border-left: none;
-  border-right: none;
+  border: none;
   outline: none;
   text-align: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  background-color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  background-color: transparent;
+  appearance: textfield; /* Enlève les flèches par défaut */
 }
 
-/* --- BOUTON PRINCIPAL --- */
+/* Enlève les flèches sur Chrome/Safari */
+.inputNumberWrapper input::-webkit-outer-spin-button,
+.inputNumberWrapper input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────
+   BOUTON PRINCIPAL (Acheter / Vendre)
+───────────────────────────────────────── */
 .buttonBuy {
-  background-color: #f3ca3e;
+  background: linear-gradient(135deg, #f3ca3e 0%, #e2b828 100%);
   color: #1a1a1a;
   border: none;
-  border-radius: 12px;
-  padding: 14px 40px;
+  border-radius: 16px;
+  padding: 16px;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 20px;
+  transition: all 0.3s ease;
   width: 100%;
+  box-shadow: 0 10px 20px rgba(243, 202, 62, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .buttonBuy:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(243, 202, 62, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 25px rgba(243, 202, 62, 0.4);
+  filter: brightness(1.05);
 }
 
-/* --- BOUTON FERMER --- */
+.buttonBuy:active {
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────
+   BOUTON FERMER (Lien discret)
+───────────────────────────────────────── */
+.modalFooter {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .closeLink {
   background: none;
-  border: 1px solid #eee;
-  color: #999;
+  border: none;
+  color: #94a3b8;
   font-size: 0.9rem;
   font-weight: 600;
   margin-top: 25px;
   cursor: pointer;
-  text-decoration: none;
-  transition: color 0.2s;
-  padding: 5px 15px;
-  border-radius: 5px;
+  transition: all 0.2s;
+  padding: 8px 20px;
 }
 
 .closeLink:hover {
-  color: #333;
-  background-color: #f9f9f9;
+  color: #1e293b;
+  text-decoration: underline;
 }
 
 /* ─────────────────────────────────────────
-   RESPONSIVE — ≤ 500px
+   RESPONSIVE
 ───────────────────────────────────────── */
 @media (max-width: 500px) {
   .modal {
-    width: 95%;
-    padding: 25px;
-    border-radius: 14px;
+    padding: 30px 20px;
+    width: 92%;
   }
 
-  .modalTitle {
-    font-size: 1.5rem;
-  }
-
-  .modalSubtitle {
-    font-size: 0.9rem;
-    margin-bottom: 18px;
-  }
-
-  .inputNumberWrapper button {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .inputNumberWrapper input {
-    width: 80px;
-    height: 40px;
-    font-size: 1rem;
-  }
-
-  .buttonBuy {
-    padding: 12px 20px;
-    font-size: 1rem;
-  }
-}
-
-/* ─────────────────────────────────────────
-   RESPONSIVE — ≤ 360px
-───────────────────────────────────────── */
-@media (max-width: 360px) {
-  .modal {
-    padding: 18px;
-  }
-
-  .modalTitle {
+  .modalTitle h1 {
     font-size: 1.3rem;
   }
 
   .inputNumberWrapper button {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
+}
 
-  .inputNumberWrapper input {
-    width: 70px;
-    height: 36px;
-    font-size: 0.95rem;
-  }
 
-  .closeLink {
-    font-size: 0.8rem;
-    margin-top: 16px;
-  }
+
+.toastSuccess {
+  background-color: #fffdf2 !important; 
+  color: #000000 !important;         
+  border: 2px solid #f3ca3e !important; 
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 25px rgba(243, 202, 62, 0.2) !important;
+}
+
+.toastProgressSuccess {
+  background: #f3ca3e !important;
+}
+
+.toastSuccess :global(.Toastify__toast-icon svg) {
+  fill: #f3ca3e !important;
+}
+
+.toastError {
+  background-color: #fff5f5 !important;
+  color: #1a1a1a !important;
+  border: 2px solid #ef4444 !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15) !important;
+}
+
+.toastProgressError {
+  background: #ef4444 !important;
+}
+
+.toastError :global(.Toastify__toast-icon svg) {
+  fill: #ef4444 !important;
+}
+
+.toastSuccess, .toastError {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.95rem !important;
 }

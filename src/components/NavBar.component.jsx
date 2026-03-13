@@ -13,14 +13,21 @@ function Navbar() {
   const { lang, toggleLanguage } = useLanguage();
   const [active, setActive] = useState("accueil");
   const [menu, setMenu] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   function toggleMenu() {
     setMenu((prevState) => !prevState);
   }
 
+  const handleConfirmLogout = () => {
+    logout();
+    setShowLogoutModal(false);
+  };
+
   return (
     <nav className={navBarStyles.navBarContainer}>
       
+      {/* SECTION GAUCHE : LOGO ET LIENS */}
       <div className={navBarStyles.leftSection}>
         <div className={navBarStyles.logoContainerLeft}>
           <Link href={"/"}>
@@ -49,6 +56,7 @@ function Navbar() {
         </ul>
       </div>
 
+      {/* SECTION CENTRE : SÉLECTEUR DE PORTEFEUILLE */}
       {user && wallets && (
         <div className={navBarStyles.centerSection}>
           <div className={navBarStyles.portfolioBadge}>
@@ -75,6 +83,7 @@ function Navbar() {
         </div>
       )}
 
+      {/* SECTION DROITE : LANGUE, EMAIL ET DECO */}
       <div className={navBarStyles.rightSection}>
         <button 
           className={navBarStyles.langBtn} 
@@ -90,11 +99,41 @@ function Navbar() {
           </div>
         )}
         
-        <div className={navBarStyles.logoutBtn} onClick={() => logout()}>
+        {/* On ouvre le pop-up au clic ici */}
+        <div className={navBarStyles.logoutBtn} onClick={() => setShowLogoutModal(true)}>
           <Image src="/assets/deco6.png" width={30} height={30} alt="Déconnexion" />
         </div>
       </div>
 
+      {/* POP-UP DE CONFIRMATION DE DÉCONNEXION */}
+      {showLogoutModal && (
+        <div className={navBarStyles.modalOverlay}>
+          <div className={navBarStyles.modalBox}>
+            <h3>{lang === "fr" ? "Déconnexion" : "Logout"}</h3>
+            <p>
+              {lang === "fr" 
+                ? "Êtes-vous sûr de vouloir vous déconnecter ?" 
+                : "Are you sure you want to log out?"}
+            </p>
+            <div className={navBarStyles.modalButtons}>
+              <button 
+                className={navBarStyles.confirmBtn} 
+                onClick={handleConfirmLogout}
+              >
+                {lang === "fr" ? "Oui, me déconnecter" : "Yes, log me out"}
+              </button>
+              <button 
+                className={navBarStyles.cancelBtn} 
+                onClick={() => setShowLogoutModal(false)}
+              >
+                {lang === "fr" ? "Annuler" : "Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MENU BURGER MOBILE */}
       <div className={`${navBarStyles.menu} ${menu ? navBarStyles.change : ""}`} onClick={toggleMenu}>
         <div className={navBarStyles.menuLine1}></div>
         <div className={navBarStyles.menuLine2}></div>
