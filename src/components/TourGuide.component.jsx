@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 const TOUR_KEY = "investdays_tour_done";
 const TOOLTIP_WIDTH = 280;
@@ -56,7 +57,7 @@ const steps_fr = [
     target: "tour-portfolio-preview",
     title: "💼 Aperçu rapide",
     description: "Un résumé de vos positions actuelles. Vous pouvez cliquer sur 'Aller aux marchés' pour trader.",
-    position: "top", // "top" car l'élément est souvent bas sur l'écran
+    position: "top",
   },
   {
     target: "tour-transactions",
@@ -68,6 +69,24 @@ const steps_fr = [
     target: "tour-rules",
     title: "📜 Règles du jeu",
     description: "Prenez quelques minutes pour lire ces conseils, ils vous expliquent comment gagner le tournoi !",
+    position: "top",
+  },
+  {
+    target: "tour-wallet-stats",
+    title: "💰 Résumé du compte",
+    description: "Ici, vous voyez la valeur totale de ce portefeuille précis (Cash + Actions).",
+    position: "bottom",
+  },
+  {
+    target: "tour-wallet-actions",
+    title: "➕ Gestion",
+    description: "Créez jusqu'à 4 portefeuilles différents pour tester plusieurs stratégies ou allez directement aux marchés.",
+    position: "bottom-left",
+  },
+  {
+    target: "tour-wallet-table",
+    title: "📋 Vos Positions",
+    description: "C'est ici que s'afficheront vos actions après vos achats. Vous pourrez suivre leur gain ou perte en temps réel.",
     position: "top",
   },
 ];
@@ -140,6 +159,24 @@ const steps_en = [
     description: "Take a few minutes to read these tips; they explain how to win the tournament!",
     position: "top",
   },
+  {
+    target: "tour-wallet-stats",
+    title: "💰 Account Summary",
+    description: "Here you can see the total value of this specific portfolio (Cash + Stocks).",
+    position: "bottom",
+  },
+  {
+    target: "tour-wallet-actions",
+    title: "➕ Management",
+    description: "Create up to 4 different portfolios to test multiple strategies or go straight to markets.",
+    position: "bottom-left",
+  },
+  {
+    target: "tour-wallet-table",
+    title: "📋 Your Positions",
+    description: "This is where your stocks will appear after purchase. You can track their gain or loss in real-time.",
+    position: "top",
+  },
 ];
 
 export default function TourGuide({ lang = "fr" }) {
@@ -147,6 +184,7 @@ export default function TourGuide({ lang = "fr" }) {
   const [step, setStep] = useState(0);
   const [spotlight, setSpotlight] = useState(null);
   const [tooltip, setTooltip] = useState({ top: 0, left: 0 });
+  const router = useRouter();
 
   const steps = lang === "en" ? steps_en : steps_fr;
 
@@ -158,19 +196,15 @@ export default function TourGuide({ lang = "fr" }) {
 
   useEffect(() => {
     if (active) updatePositions();
-  }, [active, step]);
+  }, [active, step, router.asPath]);
 
- // Dans TourGuide.component.js
 
 function updatePositions() {
   const current = steps[step];
   const el = document.getElementById(current.target);
   if (!el) return;
 
-  // 1. SCROLL vers l'élément pour qu'il soit bien visible
   el.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  // On attend un court instant que le scroll se stabilise pour calculer la position
   setTimeout(() => {
     const rect = el.getBoundingClientRect();
     const pad = 8;
@@ -183,21 +217,18 @@ function updatePositions() {
     });
 
     let tooltipTop;
-    const TOOLTIP_HEIGHT = 180; // Hauteur approximative du tooltip
+    const TOOLTIP_HEIGHT = 180; 
 
-    // 2. LOGIQUE DE POSITION (Top vs Bottom)
     if (current.position === "top") {
       tooltipTop = rect.top - TOOLTIP_HEIGHT - 20;
     } else {
       tooltipTop = rect.bottom + 16;
     }
 
-    // Sécurité : Si l'encadré dépasse en bas de l'écran, on le force à remonter
     if (tooltipTop + TOOLTIP_HEIGHT > window.innerHeight) {
       tooltipTop = window.innerHeight - TOOLTIP_HEIGHT - 20;
     }
 
-    // Sécurité : Ne pas passer sous la barre de navigation (header)
     tooltipTop = Math.max(90, tooltipTop);
 
     let tooltipLeft;
@@ -209,16 +240,34 @@ function updatePositions() {
     tooltipLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - TOOLTIP_WIDTH - 16));
 
     setTooltip({ top: tooltipTop, left: tooltipLeft });
-  }, 300); // Délai pour laisser le temps au scroll
+  }, 300); 
 }
-  function next() {
-    if (step < steps.length - 1) setStep(s => s + 1);
-    else finish();
+function next() {
+  const currentStep = steps[step];
+
+  if (currentStep.target === "tour-rules") {
+    router.push("/wallet");
   }
 
-  function prev() {
-    if (step > 0) setStep(s => s - 1);
+  if (step < steps.length - 1) {
+    setStep((s) => s + 1);
+  } else {
+    finish();
   }
+}
+
+function prev() {
+  const currentStep = steps[step];
+
+  if (currentStep.target === "tour-wallet-stats") {
+    router.push("/");
+  }
+
+  if (step > 0) {
+    setStep((s) => s - 1);
+  }
+}
+
 
   function finish() {
     localStorage.setItem(TOUR_KEY, "true");
