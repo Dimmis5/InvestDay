@@ -80,7 +80,7 @@ export default function Wallet() {
             <p className={homeStyles.marketSub}>{t.sub}</p>
           </div>
           
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div id="tour-wallet-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
              {wallets && wallets.length < 4 && (
                 <button 
                   className={homeStyles.filterItem} 
@@ -100,7 +100,7 @@ export default function Wallet() {
           </div>
         </div>
 
-        <div className={homeStyles.summaryGrid} style={{ 
+        <div id="tour-wallet-stats" className={homeStyles.summaryGrid} style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(3, 1fr)', 
           gap: '20px', 
@@ -138,7 +138,7 @@ export default function Wallet() {
           </div>
         </div>
 
-        <div className={homeStyles.assetCard} style={{ padding: '25px', borderRadius: '15px', backgroundColor: '#fff' }}>
+        <div id="tour-wallet-table" className={homeStyles.assetCard} style={{ padding: '25px', borderRadius: '15px', backgroundColor: '#fff' }}>
           <TableWallet
             selectedId={selectedId}
             activeWalletTransactions={wallets[selectedId]?.transactions}

@@ -171,7 +171,7 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
       <main className={homeStyles.pageContainer}>
 
         {/* Header */}
-        <div className={homeStyles.marketHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div id="tour-market-info" className={homeStyles.marketHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
             <h1 className={homeStyles.marketTitle}>{t.title}</h1>
             <p className={homeStyles.marketSub}>{t.sub}</p>
@@ -199,7 +199,7 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
         </div>
 
         {/* Barre de recherche */}
-        <div className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 20px' }}>
+        <div id="tour-market-search" className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 20px' }}>
           <div style={{ borderRadius: '15px', border: '2px solid #f3ca3e', backgroundColor: 'white', display: 'flex', alignItems: 'center', padding: '0 15px', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <circle cx="11" cy="11" r="8" />
@@ -222,7 +222,7 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
         </div>
 
         {/* Filtres marché */}
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px', flexWrap: 'wrap' }}>
+        <div id="tour-market-categories" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px', flexWrap: 'wrap' }}>
           {filters.map((f) => (
             <button key={f.key} onClick={() => handleFilterChange(f.key)} style={btnStyle(marketFilter === f.key)}>
               {f.label}
@@ -231,7 +231,7 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
         </div>
 
         {/* Tableau */}
-        <div className={homeStyles.assetCard} style={{ padding: '0', overflow: 'hidden', borderRadius: '15px' }}>
+        <div id="tour-market-list" className={homeStyles.assetCard} style={{ padding: '0', overflow: 'hidden', borderRadius: '15px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '14px' }}>
               {t.loading}
