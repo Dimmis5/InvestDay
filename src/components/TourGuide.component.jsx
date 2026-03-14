@@ -89,6 +89,30 @@ const steps_fr = [
     description: "C'est ici que s'afficheront vos actions après vos achats. Vous pourrez suivre leur gain ou perte en temps réel.",
     position: "top",
   },
+  {
+  target: "tour-market-info",
+  title: "🚀 Explorez les marchés",
+  description: "C'est ici que tout commence. Gardez un œil sur votre cash disponible avant d'investir.",
+  position: "bottom",
+},
+{
+  target: "tour-market-search",
+  title: "🔍 Recherche",
+  description: "Tapez le nom d'une entreprise ou son symbole (ex: AAPL pour Apple) pour trouver un actif.",
+  position: "bottom",
+},
+{
+  target: "tour-market-categories",
+  title: "🏷️ Filtres",
+  description: "Basculez rapidement entre les actions US, les cryptomonnaies ou le Forex.",
+  position: "bottom",
+},
+{
+  target: "tour-market-list",
+  title: "📊 Liste des actifs",
+  description: "Cliquez sur une ligne pour voir les détails de l'actif et passer votre premier ordre !",
+  position: "top",
+},
 ];
 
 
@@ -177,6 +201,33 @@ const steps_en = [
     description: "This is where your stocks will appear after purchase. You can track their gain or loss in real-time.",
     position: "top",
   },
+
+
+
+  {
+  target: "tour-market-info",
+  title: "🚀 Explorez les marchés",
+  description: "C'est ici que tout commence. Gardez un œil sur votre cash disponible avant d'investir.",
+  position: "bottom",
+},
+{
+  target: "tour-market-search",
+  title: "🔍 Recherche",
+  description: "Tapez le nom d'une entreprise ou son symbole (ex: AAPL pour Apple) pour trouver un actif.",
+  position: "bottom",
+},
+{
+  target: "tour-market-categories",
+  title: "🏷️ Filtres",
+  description: "Basculez rapidement entre les actions US, les cryptomonnaies ou le Forex.",
+  position: "bottom",
+},
+{
+  target: "tour-market-list",
+  title: "📊 Liste des actifs",
+  description: "Cliquez sur une ligne pour voir les détails de l'actif et passer votre premier ordre !",
+  position: "top",
+},
 ];
 
 export default function TourGuide({ lang = "fr" }) {
@@ -245,8 +296,15 @@ function updatePositions() {
 function next() {
   const currentStep = steps[step];
 
+  // Transition Accueil -> Portefeuille
   if (currentStep.target === "tour-rules") {
     router.push("/wallet");
+  }
+
+  // Transition Portefeuille -> Marchés
+  // On change de page après la dernière étape du portefeuille
+  if (currentStep.target === "tour-wallet-table") {
+    router.push("/market");
   }
 
   if (step < steps.length - 1) {
@@ -259,6 +317,12 @@ function next() {
 function prev() {
   const currentStep = steps[step];
 
+  // Retour Marchés -> Portefeuille
+  if (currentStep.target === "tour-market-info") {
+    router.push("/wallet");
+  }
+
+  // Retour Portefeuille -> Accueil
   if (currentStep.target === "tour-wallet-stats") {
     router.push("/");
   }
