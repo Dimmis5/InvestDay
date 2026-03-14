@@ -295,14 +295,10 @@ function updatePositions() {
 }
 function next() {
   const currentStep = steps[step];
-
-  // Transition Accueil -> Portefeuille
   if (currentStep.target === "tour-rules") {
     router.push("/wallet");
   }
 
-  // Transition Portefeuille -> Marchés
-  // On change de page après la dernière étape du portefeuille
   if (currentStep.target === "tour-wallet-table") {
     router.push("/market");
   }
@@ -317,12 +313,10 @@ function next() {
 function prev() {
   const currentStep = steps[step];
 
-  // Retour Marchés -> Portefeuille
   if (currentStep.target === "tour-market-info") {
     router.push("/wallet");
   }
 
-  // Retour Portefeuille -> Accueil
   if (currentStep.target === "tour-wallet-stats") {
     router.push("/");
   }
