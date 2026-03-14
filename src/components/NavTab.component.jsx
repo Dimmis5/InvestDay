@@ -5,10 +5,11 @@ import navBarStyles from "../styles/NavButton.module.css";
 import navButtonStyles from "../styles/NavButton.module.css";
 import { useRouter } from "next/router";
 
-function NavTab({ active, id, title, icon, to, handleToggle }) {
+function NavTab({ active, id, title, icon, to, handleToggle, tourId }) {
   const router = useRouter();
   return (
     <li
+
       className={[
         navButtonStyles.list,
         router.asPath === to ? navButtonStyles.active : null,
@@ -22,6 +23,7 @@ function NavTab({ active, id, title, icon, to, handleToggle }) {
         }}
       > */}
       <Link
+        id={tourId}
         className={navBarStyles.navButtonContainer}
         href={to}
         onClick={() => {

@@ -138,7 +138,7 @@ export default function Home() {
           <h2 className={homeStyles.sectionTitle}>{t.dashTitle}</h2>
         </div>
 
-        <div className={homeStyles.statsGrid}>
+        <div id="tour-stats" className={homeStyles.statsGrid}>
           <div className={homeStyles.statCard}>
             <div className={homeStyles.statLabel}>{t.cashLabel}</div>
             <div className={homeStyles.statValue}>
@@ -169,7 +169,7 @@ export default function Home() {
         </div>
 
         <div className={homeStyles.dashboardGrid}>
-          <div className={homeStyles.panel}>
+          <div id="tour-portfolio-preview" className={homeStyles.panel}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0 }}>{t.portfolioTitle}</h3>
               <button
@@ -209,7 +209,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className={homeStyles.panel}>
+          <div id="tour-transactions" className={homeStyles.panel}>
             <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 20px 0' }}>{t.transactions}</h3>
             {recentTx.length === 0 ? (
               <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>{t.noTx}</p>
@@ -250,7 +250,7 @@ export default function Home() {
           <p className={homeStyles.sectionSub}>{t.rulesSub}</p>
         </div>
         
-        <div className={homeStyles.rulesGrid}>
+        <div id="tour-rules" className={homeStyles.rulesGrid}>
           {t.rules.map((rule, index) => (
             <div key={index} className={homeStyles.ruleCard}>
               <div style={{ fontSize: '26px' }}>{rule.icon}</div>
