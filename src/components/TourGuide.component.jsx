@@ -156,6 +156,13 @@ const steps_fr = [
   description: "Le classement est mis à jour en direct. Battez-vous pour atteindre le top du tableau !",
   position: "top",
 },
+
+{
+  target: "tour-footer",
+  title: "🆘 Besoin d'aide ?",
+  description: "Un problème ou une question ? Rejoignez notre Discord ou contactez le support via ces liens.",
+  position: "top", 
+},
 ];
 
 
@@ -318,6 +325,12 @@ const steps_en = [
   description: "Le classement est mis à jour en direct. Battez-vous pour atteindre le top du tableau !",
   position: "top",
 },
+{
+  target: "tour-footer",
+  title: "🆘 Besoin d'aide ?",
+  description: "Un problème ou une question ? Rejoignez notre Discord ou contactez le support via ces liens.",
+  position: "top", 
+},
 ];
 
 export default function TourGuide({ lang = "fr" }) {
@@ -386,22 +399,18 @@ function updatePositions() {
 function next() {
   const currentStep = steps[step];
 
-  // Accueil -> Portefeuille
   if (currentStep.target === "tour-rules") {
     router.push("/wallet");
   }
 
-  // Portefeuille -> Marchés
   if (currentStep.target === "tour-wallet-table") {
     router.push("/market");
   }
 
-  // Marchés -> Détail (AAPL)
   if (currentStep.target === "tour-market-list") {
     router.push("/market/AAPL?market=stocks&name=Apple%20Inc.");
   }
 
-  // Détail -> Classement (Nouvelle transition)
   if (currentStep.target === "tour-detail-buy") {
     router.push("/ranks");
   }
@@ -414,33 +423,24 @@ function next() {
 }
 
 function prev() {
-  const currentStep = steps[step];
-
-  // Classement -> Détail (AAPL)
-  if (currentStep.target === "tour-ranks-info") {
-    router.push("/market/AAPL?market=stocks&name=Apple%20Inc.");
-  }
-
-  // Détail -> Marchés
-  if (currentStep.target === "tour-detail-info") {
-    router.push("/market");
-  }
-
-  // Marchés -> Portefeuille
-  if (currentStep.target === "tour-market-info") {
-    router.push("/wallet");
-  }
-
-  // Portefeuille -> Accueil
-  if (currentStep.target === "tour-wallet-stats") {
-    router.push("/");
-  }
-
   if (step > 0) {
+    const currentStep = steps[step];
+
+    if (currentStep.target === "tour-ranks-info") {
+      router.push("/market/AAPL?market=stocks&name=Apple%20Inc.");
+    } 
+    else if (currentStep.target === "tour-detail-info") {
+      router.push("/market");
+    } 
+    else if (currentStep.target === "tour-market-info") {
+      router.push("/wallet");
+    } 
+    else if (currentStep.target === "tour-wallet-stats") {
+      router.push("/");
+    }
     setStep((s) => s - 1);
   }
 }
-
   function finish() {
     localStorage.setItem(TOUR_KEY, "true");
     setActive(false);

@@ -53,7 +53,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className={footerStyles.linksSection}>
+        <div id="tour-footer" className={footerStyles.linksSection}>
           <div className={footerStyles.linkGroup}>
             <h4>{t.support}</h4>
             <a href="/contact">{t.contact}</a>
