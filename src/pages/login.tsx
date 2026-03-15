@@ -92,7 +92,7 @@ export default function Login() {
           gap: '8px'
         }}
       >
-        <span>{lang === 'fr' ? '🇺🇸 English' : '🇫🇷 Français'}</span>
+        <span>{lang === 'fr' ? 'English' : 'Français'}</span>
       </button>
 
       <div className={styles.page}>
