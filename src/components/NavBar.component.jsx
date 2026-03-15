@@ -95,7 +95,7 @@ function Navbar() {
             className={navBarStyles.langBtn}
             onClick={toggleLanguage}
           >
-            {lang === "fr" ? "🇺🇸 EN" : "🇫🇷 FR"}
+            {lang === "fr" ? "ENGLISH" : "FRANÇAIS"}
           </button>
 
           {user && (

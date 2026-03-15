@@ -19,21 +19,21 @@ export default function Ranks() {
     fr: {
       headTitle: "InvestDays - Classement Global",
       title: "Classement Global",
-      sub: "Basé sur la valeur totale du portefeuille",
+      sub: "Basé sur la valeur totale indicative (Cash + Actions)",
       perfTitle: "Ta Performance",
       rankLabel: "Classement #",
-      cashLabel: "VALEUR TOTALE",
-      profitLabel: "PROFIT/PERTE",
+      totalValueLabel: "VALEUR TOTALE INDICATIVE", 
+      evolutionLabel: "ÉVOLUTION (P/L)",
       topTraders: "Top Investisseurs",
     },
     en: {
       headTitle: "InvestDays - Global Ranking",
       title: "Global Ranking",
-      sub: "Based on total portfolio value",
+      sub: "Based on total indicative value (Cash + Stocks)",
       perfTitle: "Your Performance",
       rankLabel: "Rank #",
-      cashLabel: "TOTAL VALUE",
-      profitLabel: "PROFIT/LOSS",
+      totalValueLabel: "TOTAL INDICATIVE VALUE",
+      evolutionLabel: "EVOLUTION (P/L)",
       topTraders: "Top Traders",
     },
   };
@@ -47,34 +47,48 @@ export default function Ranks() {
       .catch((err) => console.error("Erreur API:", err));
   }, []);
 
-  const myPerformance = useMemo(() => {
-    if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
+const myPerformance = useMemo(() => {
+  if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
 
-    const sortedData = [...dataRanks]
-      .filter((item: any) => item?.user?.isAdmin === false)
-      .sort(
-        (a: any, b: any) =>
-          (Number(b.publicWalletValue) || 0) -
-          (Number(a.publicWalletValue) || 0)
-      );
+  const playersOnly = dataRanks.filter((item: any) => item?.user?.isAdmin === false);
 
-    const myIndex = sortedData.findIndex(
-      (item: any) => item?.user?.id === (user as any)?.id
-    );
+  const bestWalletsPerUser = playersOnly.reduce((acc: any[], current: any) => {
+    const userId = current.user?.id;
+    const existingEntryIndex = acc.findIndex(item => item.user?.id === userId);
 
-    if (myIndex === -1) return null;
+    if (existingEntryIndex === -1) {
+      acc.push(current);
+    } else {
+      if (Number(current.publicWalletValue) > Number(acc[existingEntryIndex].publicWalletValue)) {
+        acc[existingEntryIndex] = current;
+      }
+    }
+    return acc;
+  }, []);
 
-    const myData = sortedData[myIndex];
-    const STARTING_CASH = 10000;
-    const totalValue = Number(myData.publicWalletValue) || 0;
+  const sortedData = [...bestWalletsPerUser].sort(
+    (a: any, b: any) =>
+      (Number(b.publicWalletValue) || 0) -
+      (Number(a.publicWalletValue) || 0)
+  );
 
-    return {
-      rank: myIndex + 1,
-      total: totalValue,
-      profit: totalValue - STARTING_CASH,
-      percent: ((totalValue - STARTING_CASH) / STARTING_CASH) * 100,
-    };
-  }, [dataRanks, user]);
+  const myIndex = sortedData.findIndex(
+    (item: any) => item?.user?.id === (user as any)?.id
+  );
+
+  if (myIndex === -1) return null;
+
+  const myData = sortedData[myIndex];
+  const STARTING_CASH = 10000;
+  const totalValue = Number(myData.publicWalletValue) || 0;
+
+  return {
+    rank: myIndex + 1,
+    total: totalValue,
+    profit: totalValue - STARTING_CASH,
+    percent: ((totalValue - STARTING_CASH) / STARTING_CASH) * 100,
+  };
+}, [dataRanks, user]);
 
   return (
     <>
@@ -106,7 +120,7 @@ export default function Ranks() {
           </div>
           <div className={homeStyles.perfGrid}>
             <div className={homeStyles.perfItem}>
-              <label>{t.cashLabel}</label>
+              <label>{t.totalValueLabel}</label>
               <div className={homeStyles.perfValue}>
                 {myPerformance
                   ? myPerformance.total.toLocaleString(undefined, {
@@ -116,8 +130,9 @@ export default function Ranks() {
                 $
               </div>
             </div>
+
             <div className={homeStyles.perfItem}>
-              <label>{t.profitLabel}</label>
+              <label>{t.evolutionLabel}</label>
               <div
                 className={homeStyles.perfValue}
                 style={{
@@ -142,9 +157,10 @@ export default function Ranks() {
           <h3 style={{ marginBottom: "25px", fontWeight: "700" }}>
             {t.topTraders}
           </h3>
+
           <TableRanks
-            data={dataRanks as any}
-            selectedId={selectedId || 0}
+            data={dataRanks as any[]}
+            userId={(user as any)?.id} 
             lang={lang}
           />
         </div>

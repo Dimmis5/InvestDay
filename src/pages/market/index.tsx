@@ -35,7 +35,7 @@ export default function Market() {
       title:          "Marchés",
       sub:            "Recherchez et analysez les actions en temps réel via Finage",
       cashLabel:      "Disponible",
-      portfolioLabel: "Portfolio n°",
+      portfolioLabel: "Portefeuille n°",
       placeholder:    "Tapez le nom d'une entreprise...",
       noWarrants:     "warrant",
       filterAll:      "Tous",

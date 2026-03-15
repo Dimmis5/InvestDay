@@ -165,3 +165,13 @@
     padding: 8px;
   }
 }
+
+.currentUserRow {
+  background-color: #ffeaa7 !important; /* Votre couleur jaune */
+  color: #000 !important;
+}
+
+.currentUserRow td {
+  color: #000 !important;
+  font-weight: 700;
+}
