@@ -148,7 +148,7 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
                   {item.symbol}
                 </td>
                 <td data-label={t.h_quantity} className={TableTransactionStyles.td}>
-                  {item.quantity?.toFixed(2)}
+                  {item.quantity?.toFixed(1)}
                 </td>
                 <td data-label={t.h_buy} className={TableTransactionStyles.td}>
                   {item.averagePriceAtExecution?.toFixed(2)} $

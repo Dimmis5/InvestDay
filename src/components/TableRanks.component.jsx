@@ -64,8 +64,12 @@ function TableRanks({ data = [], userId, lang }) {
                 </div>
               </td>
               <td className={styles.td} style={{ fontWeight: '800' }}>
-                {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })} $
+                {totalValue.toLocaleString(undefined, { 
+                  minimumFractionDigits: 2, 
+                  maximumFractionDigits: 2 
+                })} $
               </td>
+
             </tr>
           );
         })}
