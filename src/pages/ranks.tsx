@@ -145,8 +145,8 @@ export default function Ranks() {
           </h3>
 
           <TableRanks
-            data={dataRanks as any[]}// Ne pas mettre "as any" ici si possible, ou laisser data={dataRanks as any}
-            userId={(user as any)?.id} // Changez 'selectedId' par 'userId'
+            data={dataRanks as any[]}
+            userId={(user as any)?.id} 
             lang={lang}
           />
         </div>
