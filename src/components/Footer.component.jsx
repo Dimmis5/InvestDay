@@ -71,8 +71,8 @@ export default function Footer() {
       </div>
 
       <div className={footerStyles.bottomBar}>
-        <span>© {new Date().getFullYear()} InvestDays - {t.version}</span>
-        <span>Garage isep</span>
+        <span>© {new Date().getFullYear()} Invest Days - {t.version}</span>
+        <span>Garage Isep</span>
       </div>
     </footer>
   );
