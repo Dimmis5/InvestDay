@@ -1,22 +1,25 @@
 import React from "react";
 import styles from "../styles/TableTransaction.module.css";
 
-const STARTING_CASH = 10000;
-
-function TableRanks({ data = [], selectedId, lang }) {
-
+/**
+ * @param {{ data: any[], userId: any, lang: any }} props
+ */
+function TableRanks({ data = [], userId, lang }) {
+  // ... (reste du code identique à l'étape précédente)
   const translations = {
     fr: {
       rank: "CLASSEMENT",
       investor: "INVESTISSEUR",
-      profit: "PROFIT/PERTE",
-      loading: "Chargement des traders..."
+      totalValue: "VALEUR TOTALE",
+      loading: "Chargement des traders...",
+      you: "(Vous)"
     },
     en: {
       rank: "RANKING",
       investor: "INVESTOR",
-      profit: "PROFIT/LOSS",
-      loading: "Loading traders..."
+      totalValue: "TOTAL VALUE",
+      loading: "Loading traders...",
+      you: "(You)"
     }
   };
 
@@ -36,7 +39,7 @@ function TableRanks({ data = [], selectedId, lang }) {
         <tr className={styles.tr}>
           <th className={styles.th}>{t.rank}</th>
           <th className={styles.th}>{t.investor}</th>
-          <th className={styles.th}>{t.profit}</th>
+          <th className={styles.th}>{t.totalValue}</th>
         </tr>
       </thead>
       <tbody>
@@ -44,26 +47,24 @@ function TableRanks({ data = [], selectedId, lang }) {
           const rank = index + 1;
           const medals = ["🥇", "🥈", "🥉"];
           const totalValue = Number(item.publicWalletValue) || 0;
-          const profit = totalValue - STARTING_CASH;
-          const isSelected = item.id === selectedId;
-
-          let podiumClass = "";
-          if (rank === 1) podiumClass = styles.goldRow;
-          else if (rank === 2) podiumClass = styles.silverRow;
-          else if (rank === 3) podiumClass = styles.bronzeRow;
+          const isMe = item.user?.id === userId;
 
           return (
-            <tr key={item.id} className={`${styles.tr} ${podiumClass} ${isSelected ? styles.selectedRow : ""}`}>
+            <tr 
+              key={item.id} 
+              className={`${styles.tr} ${isMe ? styles.currentUserRow : ""}`}
+            >
               <td className={styles.td} style={{ fontWeight: '700' }}>
                 {rank <= 3 ? medals[index] : `#${rank}`}
               </td>
               <td className={styles.td}>
                 <div style={{ fontWeight: '600' }}>
-                  {item.user?.name || `Joueur ${item.user?.studentId || ''}`}
+                  {item.user?.name || `Joueur ${item.user?.studentId || ''}`} 
+                  {isMe && <span style={{ marginLeft: '8px', opacity: 0.7 }}>{t.you}</span>}
                 </div>
               </td>
-              <td className={styles.td} style={{ fontWeight: '800', color: profit >= 0 ? '#2ecc71' : '#e74c3c' }}>
-                {profit >= 0 ? "+" : ""}{profit.toLocaleString(undefined, { minimumFractionDigits: 2 })} $
+              <td className={styles.td} style={{ fontWeight: '800' }}>
+                {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })} $
               </td>
             </tr>
           );

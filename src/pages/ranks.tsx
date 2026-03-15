@@ -19,21 +19,21 @@ export default function Ranks() {
     fr: {
       headTitle: "InvestDays - Classement Global",
       title: "Classement Global",
-      sub: "Basé sur la valeur totale du portefeuille",
+      sub: "Basé sur la valeur totale indicative (Cash + Actions)",
       perfTitle: "Ta Performance",
       rankLabel: "Classement #",
-      cashLabel: "VALEUR TOTALE",
-      profitLabel: "PROFIT/PERTE",
+      totalValueLabel: "VALEUR TOTALE INDICATIVE", 
+      evolutionLabel: "ÉVOLUTION (P/L)",
       topTraders: "Top Investisseurs",
     },
     en: {
       headTitle: "InvestDays - Global Ranking",
       title: "Global Ranking",
-      sub: "Based on total portfolio value",
+      sub: "Based on total indicative value (Cash + Stocks)",
       perfTitle: "Your Performance",
       rankLabel: "Rank #",
-      cashLabel: "TOTAL VALUE",
-      profitLabel: "PROFIT/LOSS",
+      totalValueLabel: "TOTAL INDICATIVE VALUE",
+      evolutionLabel: "EVOLUTION (P/L)",
       topTraders: "Top Traders",
     },
   };
@@ -106,7 +106,7 @@ export default function Ranks() {
           </div>
           <div className={homeStyles.perfGrid}>
             <div className={homeStyles.perfItem}>
-              <label>{t.cashLabel}</label>
+              <label>{t.totalValueLabel}</label>
               <div className={homeStyles.perfValue}>
                 {myPerformance
                   ? myPerformance.total.toLocaleString(undefined, {
@@ -116,8 +116,9 @@ export default function Ranks() {
                 $
               </div>
             </div>
+
             <div className={homeStyles.perfItem}>
-              <label>{t.profitLabel}</label>
+              <label>{t.evolutionLabel}</label>
               <div
                 className={homeStyles.perfValue}
                 style={{
@@ -142,9 +143,10 @@ export default function Ranks() {
           <h3 style={{ marginBottom: "25px", fontWeight: "700" }}>
             {t.topTraders}
           </h3>
+
           <TableRanks
-            data={dataRanks as any}
-            selectedId={selectedId || 0}
+            data={dataRanks as any[]}// Ne pas mettre "as any" ici si possible, ou laisser data={dataRanks as any}
+            userId={(user as any)?.id} // Changez 'selectedId' par 'userId'
             lang={lang}
           />
         </div>
