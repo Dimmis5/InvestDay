@@ -28,7 +28,7 @@ export default function Wallet() {
       headTitle: "InvestDays - Portefeuille",
       title: "Portefeuille",
       sub: "Gérez vos actifs et visualisez vos performances",
-      newBtn: "+ Nouveau Portfolio",
+      newBtn: "+ Nouveau portefeuille",
       searchBtn: "Chercher une action",
       labelAssets: "Valeur des actions",
       labelCash: `Cash portefeuille n°${selectedId + 1}`,
@@ -81,7 +81,7 @@ export default function Wallet() {
           </div>
           
           <div id="tour-wallet-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-             {wallets && wallets.length < 4 && (
+             {wallets && wallets.length < 3 && (
                 <button 
                   className={homeStyles.filterItem} 
                   onClick={handleNewWallet}
