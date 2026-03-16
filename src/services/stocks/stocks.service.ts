@@ -134,5 +134,4 @@ const stocksService = {
   getLogoStock,
   getPreviousClose
 };
-
 export default stocksService;
