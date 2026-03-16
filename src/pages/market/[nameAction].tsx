@@ -182,7 +182,16 @@ export default function DetailAction(req: Request) {
             )}
           </div>
         </div>
-        <Popup title={t.popTitle} subtitle={`${t.popSub} ${nameAction}`} maxCount={detail?.price ? Math.floor((wallets[selectedId]?.cash || 0) / detail.price) : 0} symbol={nameAction as string} sell={false} open={isOpen} close={() => setIsOpen(false)} lang={lang} />
+        <Popup 
+          title={t.popTitle} 
+          subtitle={`${t.popSub} ${nameAction}`} 
+          maxCount={detail?.price ? (wallets[selectedId]?.cash || 0) / detail.price : 0} 
+          symbol={nameAction as string} 
+          sell={false} 
+          open={isOpen} 
+          close={() => setIsOpen(false)} 
+          lang={lang} 
+        />
       </main>
     </>
   );

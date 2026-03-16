@@ -24,7 +24,7 @@ function Popup({
       btnBuy: "Acheter",
       btnSell: "Vendre",
       btnClose: "Fermer",
-      errQty: "Villez saisir une quantité.",
+      errQty: "Veillez saisir une quantité.",
       successOrder: "Votre ordre a été créé !",
       errOrder: "Erreur lors de l'ordre"
     },

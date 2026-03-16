@@ -80,7 +80,8 @@ async function getLastPrice(symbol: string, userId: number, ip: string): Promise
   try {
     const data = await fetchWithFallback(endpoint, symbol, fetcher, "day", 1);
     const price = data.price || data.p || data.ask || data.bid;
-    if (price) return { results: [{ price, symbol: symbol.toUpperCase() }] };
+    const status = data.market_status || "open"
+    if (price) return { results: [{ price, symbol: symbol.toUpperCase(), market_status: status }] };
   } catch (e) {}
   return { results: [] };
 }
