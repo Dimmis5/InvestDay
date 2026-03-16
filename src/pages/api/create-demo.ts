@@ -13,23 +13,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const existing = await prisma.user.findFirst({ where: { email: "jeandupont@eleve.isep.fr" } });
-    if (existing) {
-      return res.status(200).json({ message: "Compte déjà existant", email: "jeandupont@eleve.isep.fr" });
-    }
+
+const existing = await prisma.user.findFirst({ 
+  where: { 
+    OR: [
+      { email: "jeandupont@eleve.isep.fr" },
+      { studentId: "99999" }
+    ]
+  } 
+});
+
+if (existing) {
+  return res.status(200).json({ 
+    message: "Un compte avec cet email ou ce matricule existe déjà", 
+    user: existing 
+  });
+}
 
     const hashedPassword = await bcrypt.hash("InvestDays!@2026", 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email: "jeandupont@eleve.isep.fr",
-        name: "Jean Dupont",
-        password: hashedPassword,
-        studentId: "00000",
-        isAdmin: false,
-        emailVerified: true,
-      },
-    });
+
+const user = await prisma.user.create({
+  data: {
+    email: "jeandupont@eleve.isep.fr",
+    name: "Jean Dupont",
+    password: hashedPassword,
+    studentId: "99999", 
+    isAdmin: false,
+    emailVerified: true,
+  },
+});
 
     await prisma.wallet.create({
       data: {
