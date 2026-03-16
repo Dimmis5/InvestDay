@@ -10,8 +10,10 @@ async function rank(req: Request, res: NextApiResponse<any>) {
     throw `Method ${req.method} not allowed`;
   }
 
+  // 1. On récupère plus de portefeuilles (ex: les 200 premiers)
+  // pour être sûr d'inclure la majorité des joueurs.
   const allWallets = await prisma.wallet.findMany({
-    take: 50,
+    take: 200, 
     include: {
       user: {
         select: {
@@ -27,20 +29,24 @@ async function rank(req: Request, res: NextApiResponse<any>) {
     },
   });
 
-  const seenUsers = new Map<number, typeof allWallets[0]>();
+  const seenUsers = new Map<string, typeof allWallets[0]>();
 
   for (const wallet of allWallets) {
+    // On ignore les admins
     if (!wallet.user || wallet.user.isAdmin) continue;
 
-    const existing = seenUsers.get(wallet.userId);
+    // Déduplication : on ne garde que le meilleur portefeuille par utilisateur
+    const userId = String(wallet.userId); // On passe en string pour la Map
+    const existing = seenUsers.get(userId);
+    
     if (!existing || wallet.publicWalletValue > existing.publicWalletValue) {
-      seenUsers.set(wallet.userId, wallet);
+      seenUsers.set(userId, wallet);
     }
   }
 
-  const top10 = Array.from(seenUsers.values())
-    .sort((a, b) => b.publicWalletValue - a.publicWalletValue)
-    .slice(0, 10);
+  // 2. On trie et on renvoie TOUTE la liste dédupliquée (au lieu de slice 0, 10)
+  const allRanked = Array.from(seenUsers.values())
+    .sort((a, b) => b.publicWalletValue - a.publicWalletValue);
 
-  return res.status(200).json(top10);
+  return res.status(200).json(allRanked);
 }

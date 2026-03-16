@@ -54,7 +54,7 @@ const myPerformance = useMemo(() => {
 
   const bestWalletsPerUser = playersOnly.reduce((acc: any[], current: any) => {
     const userId = current.user?.id;
-    const existingEntryIndex = acc.findIndex(item => item.user?.id === userId);
+    const existingEntryIndex = acc.findIndex(item => String(item.user?.id) === String(userId));
 
     if (existingEntryIndex === -1) {
       acc.push(current);
@@ -73,7 +73,7 @@ const myPerformance = useMemo(() => {
   );
 
   const myIndex = sortedData.findIndex(
-    (item: any) => item?.user?.id === (user as any)?.id
+    (item: any) => String(item?.user?.id) === String((user as any)?.id)
   );
 
   if (myIndex === -1) return null;

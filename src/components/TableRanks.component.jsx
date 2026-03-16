@@ -52,28 +52,28 @@ function TableRanks({ data = [], userId, lang }) {
     return <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>{t.loading}</p>;
   }
 
-  const myIndex = allRanked.findIndex(item => item.user?.id === userId);
-  let displayData = [];
 
-  const top10 = allRanked.slice(0, 10);
-  displayData = [...top10];
+const myIndex = allRanked.findIndex(item => String(item.user?.id) === String(userId));
 
-  if (myIndex >= 10) {
-    if (myIndex > 10) {
-      displayData.push({ isSeparator: true, id: 'sep-1' });
+let displayData = [];
+
+const top10 = allRanked.slice(0, 10);
+displayData = [...top10];
+
+if (myIndex >= 10) {
+  displayData.push({ isSeparator: true, id: 'sep-1' });
+
+  const neighbors = [];
+  if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
+  neighbors.push(allRanked[myIndex]);
+  if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
+
+  neighbors.forEach(n => {
+    if (!displayData.find(item => item.user?.id === n.user?.id)) {
+      displayData.push(n);
     }
-
-    const neighbors = [];
-    if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
-    neighbors.push(allRanked[myIndex]);
-    if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
-
-    neighbors.forEach(n => {
-      if (!displayData.find(item => item.id === n.id)) {
-        displayData.push(n);
-      }
-    });
-  }
+  });
+}
 
   return (
     <table className={styles.transactionTable}>
