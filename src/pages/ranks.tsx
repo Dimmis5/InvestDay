@@ -50,7 +50,9 @@ export default function Ranks() {
 const myPerformance = useMemo(() => {
   if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
 
-  const playersOnly = dataRanks.filter((item: any) => item?.user?.isAdmin === false);
+const playersOnly = dataRanks.filter((item: any) => 
+  item?.user?.isAdmin === false && item?.user?.isPartenaire === false
+);
 
   const bestWalletsPerUser = playersOnly.reduce((acc: any[], current: any) => {
     const userId = current.user?.id;

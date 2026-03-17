@@ -19,6 +19,7 @@ model User {
   password  String
   studentId String?  @unique
   isAdmin   Boolean  @default(false)
+  isPartenaire Boolean @default(false)
   wallet    Wallet[]
   emailVerified   Boolean   @default(false)
   verificationToken String? @unique

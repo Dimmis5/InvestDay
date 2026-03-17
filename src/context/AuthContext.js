@@ -71,9 +71,9 @@ const ProtectRoute = ({ children }) => {
     const isAuth = isAuthenticated || reLogin();
     const path = router.pathname; 
 
-if (!isAuth && path !== "/login" && path !== "/demo") {
+if (!isAuth && path !== "/login" && path !== "/partenaires") {
   router.push("/login");
-} else if (isAuth && (path === "/login" || path === "/demo")) {
+} else if (isAuth && (path === "/login" || path === "/partenaires")) {
       router.push("/");
     } else {
       setIsLoaded(true);

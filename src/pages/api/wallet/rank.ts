@@ -19,6 +19,7 @@ async function rank(req: Request, res: NextApiResponse<any>) {
           email: true,
           name: true,
           isAdmin: true,
+          isPartenaire: true,
         },
       },
     },
@@ -30,7 +31,7 @@ async function rank(req: Request, res: NextApiResponse<any>) {
   const seenUsers = new Map<string, typeof allWallets[0]>();
 
   for (const wallet of allWallets) {
-    if (!wallet.user || wallet.user.isAdmin) continue;
+    if (!wallet.user || wallet.user.isAdmin || wallet.user.isPartenaire) continue; 
 
     const userId = String(wallet.userId); 
     const existing = seenUsers.get(userId);

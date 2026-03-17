@@ -12,6 +12,7 @@ function jwtMiddleware(req, res) {
     path: [
       "/api/auth/register",
       "/api/auth/login",
+      "/api/auth/login-partenaire",
     ],
   });
 
