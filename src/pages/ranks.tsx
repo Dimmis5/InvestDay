@@ -50,9 +50,9 @@ export default function Ranks() {
 const myPerformance = useMemo(() => {
   if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
 
-const playersOnly = dataRanks.filter((item: any) => 
-  item?.user?.isAdmin === false && item?.user?.isPartenaire === false
-);
+  const playersOnly = dataRanks.filter((item: any) => 
+    item?.user?.isAdmin === false && item?.user?.isPartenaire === false
+  );
 
   const bestWalletsPerUser = playersOnly.reduce((acc: any[], current: any) => {
     const userId = current.user?.id;
@@ -68,10 +68,10 @@ const playersOnly = dataRanks.filter((item: any) =>
     return acc;
   }, []);
 
+
   const sortedData = [...bestWalletsPerUser].sort(
     (a: any, b: any) =>
-      (Number(b.publicWalletValue) || 0) -
-      (Number(a.publicWalletValue) || 0)
+      (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0)
   );
 
   const myIndex = sortedData.findIndex(
@@ -81,7 +81,7 @@ const playersOnly = dataRanks.filter((item: any) =>
   if (myIndex === -1) return null;
 
   const myData = sortedData[myIndex];
-  const STARTING_CASH = 10000;
+  const STARTING_CASH = 10000; 
   const totalValue = Number(myData.publicWalletValue) || 0;
 
   return {
@@ -91,6 +91,7 @@ const playersOnly = dataRanks.filter((item: any) =>
     percent: ((totalValue - STARTING_CASH) / STARTING_CASH) * 100,
   };
 }, [dataRanks, user]);
+
 
   return (
     <>

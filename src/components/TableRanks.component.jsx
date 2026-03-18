@@ -26,7 +26,7 @@ function TableRanks({ data = [], userId, lang }) {
 
   const t = translations[lang] || translations.fr;
 
-  const bestWalletsPerUser = data.reduce((acc, current) => {
+ const bestWalletsPerUser = data.reduce((acc, current) => {
     const currentUserId = current.user?.id;
     if (!currentUserId) return acc;
 

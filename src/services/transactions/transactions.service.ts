@@ -66,15 +66,44 @@ async function executeTransaction(
     },
   });
 
-
   const walletWithNewCash = await walletsService.addMoney(
     transaction.walletId,
     stockPrice * transaction.quantity * (transaction.isSellOrder ? 1 : -1)
   );
 
+  const allTransactions = await prisma.transaction.findMany({
+    where: { 
+      walletId: transaction.walletId,
+      status: Status.EXECUTED 
+    }
+  });
+
+  const inventory: { [symbol: string]: number } = {};
+  allTransactions.forEach(t => {
+    const qty = t.quantity * (t.isSellOrder ? -1 : 1);
+    inventory[t.symbol] = (inventory[t.symbol] || 0) + qty;
+  });
+
+  let assetsValue = 0;
+  for (const symbol in inventory) {
+    const qte = inventory[symbol];
+    if (qte > 0) {
+      if (symbol === transaction.symbol) {
+        assetsValue += qte * stockPrice;
+      } else {
+        const lastTx = allTransactions
+          .filter(tx => tx.symbol === symbol)
+          .sort((a, b) => b.executedAt!.getTime() - a.executedAt!.getTime())[0];
+        assetsValue += qte * (lastTx.valueAtExecution || 0);
+      }
+    }
+  }
+
+  const totalIndicativeValue = walletWithNewCash.cash + assetsValue;
+
   await walletsService.updatePublicValue(
     transaction.walletId,
-    walletWithNewCash.cash
+    totalIndicativeValue
   );
 
   return updatedTransaction;
