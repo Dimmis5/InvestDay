@@ -61,3 +61,4 @@ jobs:
             docker compose down
             docker compose pull app
             docker compose up -d
+            docker image prune -af
