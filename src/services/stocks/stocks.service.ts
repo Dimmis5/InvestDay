@@ -138,13 +138,17 @@ async function getPreviousClose(symbol: string, userId?: number, ip?: string) {
     return res.results?.[0]?.price || null;
 }
 
+
+async function getLogoStock(url?: string, userId?: string | number, ip?: string) {
+  return "";
+}
 const stocksService = { 
   search, 
   getRecentPrices, 
   getLastPrice, 
   getDetailsStock, 
   getPreviousClose, 
-  getLogoStock: async () => "" 
+  getLogoStock
 };
 
 export default stocksService;

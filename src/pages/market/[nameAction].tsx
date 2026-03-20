@@ -35,6 +35,7 @@ export default function DetailAction(req: Request) {
     en: { cashLabel: "Available (P.", buyBtn: "Buy", popTitle: "Buy", popSub: "Purchase of", loading: "Loading chart...", noData: "No data available", line: "Line", candle: "Candlestick" }
   };
   const t = translations[lang as keyof typeof translations] || translations.fr;
+
   const chartData = useMemo(() => {
     let results = data?.results ? [...data.results] : [];
     
@@ -46,23 +47,16 @@ export default function DetailAction(req: Request) {
         { t: now, c: detail.price, o: detail.price, h: detail.price, l: detail.price }
       ];
     } else if (results.length > 0 && detail?.price) {
-      results.push({ t: Date.now(), c: detail.price, o: detail.price, h: detail.price, l: detail.price });
+      const lastPointTime = Number(results[results.length - 1].t);
+      if (Date.now() > lastPointTime) {
+        results.push({ t: Date.now(), c: detail.price, o: detail.price, h: detail.price, l: detail.price });
+      }
     }
 
     const line = results.map((i: any) => [Number(i.t), i.c]);
     const candle = results.map((i: any) => [Number(i.t), i.o ?? i.c, i.h ?? i.c, i.l ?? i.c, i.c]);
     return { line, candle };
   }, [data, detail?.price]);
-
-  const getXAxisRange = () => {
-    switch (range) {
-      case "1H": return 3600 * 1000;
-      case "1D": return 24 * 3600 * 1000;
-      case "1W": return 7 * 24 * 3600 * 1000;
-      case "1M": return 30 * 24 * 3600 * 1000;
-      default: return undefined;
-    }
-  };
 
   async function fetchDetail(symbol: string) {
     try {
@@ -78,8 +72,11 @@ export default function DetailAction(req: Request) {
       const m = (market as string) || "stocks";
       const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=${selectedRange}`);
       setData(res || { results: [] });
-    } catch (e) { setData({ results: [] }); }
-    finally { setLoadingChart(false); }
+    } catch (e) { 
+      setData({ results: [] }); 
+    } finally { 
+      setLoadingChart(false); 
+    }
   }
 
   useEffect(() => {
@@ -104,19 +101,30 @@ export default function DetailAction(req: Request) {
   const commonConfig: any = {
     chart: { height: 500, backgroundColor: 'transparent', animation: false },
     accessibility: { enabled: false },
-    xAxis: { type: 'datetime', ordinal: market !== 'crypto', range: getXAxisRange(), labels: { style: { color: '#888' } } },
+    xAxis: { 
+      type: 'datetime', 
+      ordinal: market !== 'crypto',
+      labels: { style: { color: '#888' } } 
+    },
     yAxis: { labels: { style: { color: '#888' }, format: '{value}$' }, opposite: true, gridLineColor: '#f5f5f5' },
     rangeSelector: { enabled: false },
     navigator: { enabled: true, maskFill: 'rgba(243, 202, 62, 0.05)', series: { color: '#f3ca3e' } },
-    scrollbar: { enabled: true },
+    scrollbar: { enabled: true, liveRedraw: false },
     credits: { enabled: false },
-    plotOptions: { series: { animation: false, dataGrouping: { enabled: range === "ALL" } } }
+    plotOptions: { 
+        series: { 
+            animation: false, 
+            dataGrouping: { enabled: range === "ALL" },
+            getExtremesFromData: false 
+        } 
+    }
   };
 
   return (
     <>
-      <Head><title>Invest Days - {nameAction}</title>
-      <link rel="icon" href="/favicon3.ico" />
+      <Head>
+        <title>Invest Days - {nameAction}</title>
+        <link rel="icon" href="/favicon3.ico" />
       </Head>
       <main className={homeStyles.pageContainer}>
         <div className={homeStyles.marketHeader}>
@@ -162,7 +170,7 @@ export default function DetailAction(req: Request) {
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '450px' }}>{t.loading}</div>
             ) : chartData.line.length > 0 ? (
               <HighchartsReact 
-                key={`${nameAction}-${chartType}-${range}`} 
+                key={`${nameAction}`} 
                 highcharts={Highcharts} 
                 constructorType={"stockChart"} 
                 options={{

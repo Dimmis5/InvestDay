@@ -70,45 +70,45 @@ export default function Market() {
 
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
-const loadSymbols = useCallback(async (filter: string, p: number) => {
-  setLoading(true);
-  try {
-    if (filter === "all") {
-      const [stocksRes, cryptoRes, forexRes] = await Promise.allSettled([
-        fetch.get(`/api/stock/symbols?type=us-stock&page=${p}&limit=10`),
-        fetch.get(`/api/stock/symbols?type=crypto&page=${p}&limit=10`),
-        fetch.get(`/api/stock/symbols?type=forex&page=${p}&limit=10`),
-      ]);
+  const loadSymbols = useCallback(async (filter: string, p: number) => {
+    setLoading(true);
+    try {
+      if (filter === "all") {
+        const [stocksRes, cryptoRes, forexRes] = await Promise.allSettled([
+          fetch.get(`/api/stock/symbols?type=us-stock&page=${p}&limit=10`),
+          fetch.get(`/api/stock/symbols?type=crypto&page=${p}&limit=10`),
+          fetch.get(`/api/stock/symbols?type=forex&page=${p}&limit=10`),
+        ]);
 
-      const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 8) : [];
-      const crypto = cryptoRes.status === "fulfilled" ? (cryptoRes.value?.symbols || []).slice(0, 6) : [];
-      const forex  = forexRes.status  === "fulfilled" ? (forexRes.value?.symbols  || []).slice(0, 6) : [];
+        const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 8) : [];
+        const crypto = cryptoRes.status === "fulfilled" ? (cryptoRes.value?.symbols || []).slice(0, 6) : [];
+        const forex  = forexRes.status  === "fulfilled" ? (forexRes.value?.symbols  || []).slice(0, 6) : [];
 
-      const combined = [...stocks, ...crypto, ...forex];
-      setSymbols(combined);
-      setHasMore(combined.length > 0);
-    } else {
-      const type = MARKET_TO_TYPE[filter] || "us-stock";
-      const res = await fetch.get(`/api/stock/symbols?type=${type}&page=${p}&limit=20`);
-      
-      const list = (res?.symbols || []).slice(0, 20); 
-      setSymbols(list);
-      setHasMore((res?.symbols || []).length > 0);
+        const combined = [...stocks, ...crypto, ...forex];
+        setSymbols(combined);
+        setHasMore(combined.length > 0);
+      } else {
+        const type = MARKET_TO_TYPE[filter] || "us-stock";
+        const res = await fetch.get(`/api/stock/symbols?type=${type}&page=${p}&limit=20`);
+        
+        const list = (res?.symbols || []).slice(0, 20); 
+        setSymbols(list);
+        setHasMore((res?.symbols || []).length > 0);
+      }
+    } catch (err) {
+      console.error("Load symbols error:", err);
+      setSymbols([]);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Load symbols error:", err);
-    setSymbols([]);
-    setHasMore(false);
-  } finally {
-    setLoading(false);
-  }
-}, [fetch]);
+  }, [fetch]);
 
   useEffect(() => {
     if (!input.trim()) {
       loadSymbols(marketFilter, page);
     }
-  }, [marketFilter, page]);
+  }, [marketFilter, page, input, loadSymbols]);
 
   function handleFilterChange(key: string) {
     setMarketFilter(key);
@@ -116,6 +116,7 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
     setInput("");
     setSearchResults([]);
   }
+
   useEffect(() => {
     const delay = setTimeout(() => {
       if (input.trim().length > 1) {
@@ -127,18 +128,35 @@ const loadSymbols = useCallback(async (filter: string, p: number) => {
       }
     }, 600);
     return () => clearTimeout(delay);
-  }, [input]);
+  }, [input, fetch]);
 
   const onChange = (e: any) => setInput(e.target.value);
   const handleKeyDown = (e: any) => {
     if (e.key === "Escape") { setInput(""); setSearchResults([]); }
   };
+
   const isSearching = input.trim().length > 1;
-  const displayList = isSearching
-    ? searchResults
-        .filter((item: any) => !item.name?.toLowerCase().includes(t.noWarrants))
-        .map((item: any) => ({ symbol: item.symbol, name: item.name, market: item.market || "stocks" }))
-    : symbols;
+  const baseList = isSearching ? searchResults : symbols;
+  const displayList = baseList
+    .filter((item: any) => {
+      const name = (item.name || "").toLowerCase();
+      const symbol = (item.symbol || "").toLowerCase();
+      const warrantTerm = t.noWarrants.toLowerCase();
+      const bannedKeywords = ["anti", "0xbtc", "0xbitcoin","btcone", "bitcoinote", "bitcoin 2","bitcoin","bitcoin 3","bitcoin adult", "bitcoin air","bether","ethereum","ethos","ethplode"];
+
+      const isBanned = bannedKeywords.some(keyword => 
+        name.includes(keyword) || symbol.includes(keyword)
+      );
+
+      const isWarrant = name.includes(warrantTerm);
+
+      return !isBanned && !isWarrant;
+    })
+    .map((item: any) => ({
+      symbol: item.symbol,
+      name: item.name,
+      market: item.market || (isSearching ? "stocks" : "")
+    }));
 
   const filters = [
     { key: "all",    label: t.filterAll },
