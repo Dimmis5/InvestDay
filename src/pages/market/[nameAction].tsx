@@ -199,6 +199,7 @@ export default function DetailAction(req: Request) {
           open={isOpen} 
           close={() => setIsOpen(false)} 
           lang={lang} 
+          isMarketOpen={detail?.market_status === "open"}
         />
       </main>
     </>
