@@ -53,7 +53,7 @@ export default function Market() {
       title:          "Markets",
       sub:            "Search and analyze stocks in real-time via Finage",
       cashLabel:      "Available",
-      portfolioLabel: "Portfolio #",
+      portfolioLabel: "Wallet #",
       placeholder:    "Type a company name...",
       noWarrants:     "warrant",
       filterAll:      "All",

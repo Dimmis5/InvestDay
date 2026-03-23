@@ -40,12 +40,12 @@ export default function Wallet() {
       headTitle: "Invest Days - Wallet",
       title: "Wallet",
       sub: "Manage your assets and track your performance",
-      newBtn: "+ New Portfolio",
+      newBtn: "+ New Wallet",
       searchBtn: "Search for a stock",
       labelAssets: "Stocks Value",
-      labelCash: `Cash portfolio #${selectedId + 1}`,
+      labelCash: `Cash Wallet #${selectedId + 1}`,
       labelTotal: "Estimated total value",
-      toastSuccess: "New portfolio created!",
+      toastSuccess: "New Wallet created!",
       toastError: "Error during creation."
     }
   };
