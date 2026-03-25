@@ -7,6 +7,56 @@ import { useWallet } from "../context/WalletContext";
 import { useAuthentification } from "../context/AuthContext";
 import { useEffect } from "react"; 
 
+// APRÈS — import direct, plus de HTTP
+import { prisma } from "../lib/prisma";
+import transactionsService from "../services/transactions/transactions.service";
+import stockService from "../services/stocks/stocks.service";
+
+export async function getServerSideProps() {
+  try {
+    const pendingOrders = await prisma.transaction.findMany({
+      where: { status: "PENDING" },
+      take: 500,
+    });
+
+    for (const order of pendingOrders) {
+      const summary: any = await stockService.getLastPrice(order.symbol, 0, "127.0.0.1");
+      const stock = summary?.results?.[0];
+      if (!stock?.price) continue;
+
+      const now = new Date();
+      const day = now.getUTCDay();
+      const hour = now.getUTCHours();
+      const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+      const nyDay = nyTime.getDay();
+      const nyMin = nyTime.getHours() * 60 + nyTime.getMinutes();
+      const isNYSEOpen = nyDay >= 1 && nyDay <= 5 && nyMin >= 570 && nyMin < 960;
+      const isForexOpen = !(day === 6 || (day === 5 && hour >= 22) || (day === 0 && hour < 22));
+
+      const sym = order.symbol.toUpperCase();
+      const forexPairs = ["EURUSD","USDJPY","GBPUSD","USDCHF","AUDUSD","USDCAD","NZDUSD","EURJPY","GBPJPY","EURGBP"];
+      const isForex = forexPairs.includes(sym) || order.symbol.includes("/");
+      const isCrypto = !isForex && (
+        sym.endsWith("USDT") ||
+        sym.endsWith("BTC") ||
+        sym.endsWith("ETH") ||
+        (sym.endsWith("USD") && sym.length > 6)
+      );
+      const isStockOpen = isNYSEOpen;
+
+      const shouldExecute = isCrypto || (isForex && isForexOpen) || (!isCrypto && !isForex && isStockOpen);
+
+
+      if (shouldExecute) {
+        await transactionsService.executeTransaction(order, Number(stock.price));
+      }
+    }
+  } catch (e) {
+    console.error("Cron trigger failed during SSR", e);
+  }
+
+  return { props: {} };
+}
 const STARTING_CASH = 10000;
 
 export default function Home() {
@@ -292,16 +342,6 @@ export default function Home() {
   );
 }
 
-export async function getServerSideProps() {
-  const cronKey = process.env.CRON_SECRET || ""; 
-  try {
-    await fetch(`http://127.0.0.1:3000/api/cron/process?key=${cronKey}`);
-  } catch (e) {
-    console.error("Cron trigger failed during SSR");
-  }
-
-  return { props: {} };
-}
 
 Home.getLayout = function getLayout(page: any) {
   return <DashBoardLayout>{page}</DashBoardLayout>;

@@ -116,6 +116,15 @@ return matches;
   return matches;
 }
 
+function isForexOpenUTC(): boolean {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const hour = now.getUTCHours();
+  if (day === 6) return false;
+  if (day === 5 && hour >= 22) return false;
+  if (day === 0 && hour < 22) return false;
+  return true;
+}
 async function getLastPrice(symbol: string, userId: number, ip: string, marketHint?: string): Promise<any> {
   const type = getAssetType(symbol, marketHint);
   const endpoint = type === "crypto" ? "crypto" : type === "forex" ? "forex" : "stock";
@@ -131,7 +140,11 @@ async function getLastPrice(symbol: string, userId: number, ip: string, marketHi
         results: [{ 
           price, 
           symbol: symbol.toUpperCase(), 
-          market_status: data.market_status || (isWithinTradingHours() ? "open" : "closed")
+          market_status: data.market_status || (
+  type === "crypto" ? "open" :
+  type === "forex" ? (isForexOpenUTC() ? "open" : "closed") :
+  (isWithinTradingHours() ? "open" : "closed")
+)
         }] 
       };
     }

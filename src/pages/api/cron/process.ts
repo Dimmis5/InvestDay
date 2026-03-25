@@ -46,9 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
       
       const isForex = forexPairs.includes(symbolUpper) || order.symbol.includes('/');
-      const isCrypto = symbolUpper.endsWith("USD") || symbolUpper.endsWith("BTC") || symbolUpper.endsWith("ETH") || symbolUpper.endsWith("USDT");
+      const isCrypto = !isForex && (
+  symbolUpper.endsWith("USDT") ||
+  symbolUpper.endsWith("BTC") ||
+  symbolUpper.endsWith("ETH") ||
+  (symbolUpper.endsWith("USD") && symbolUpper.length > 6)
+);
 
-      const isStockOpen = (stock.market_status === "open" || isNYSEOpenManual);
+const isStockOpen = isNYSEOpenManual;
       
       const shouldExecute = 
         isCrypto || 
