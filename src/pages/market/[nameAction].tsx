@@ -142,14 +142,14 @@ export default function DetailAction(req: Request) {
     }
   }, [router.isReady, nameAction]);
 
-  useEffect(() => {
-    if (!nameAction) return;
-    const interval = setInterval(async () => {
-      const price = await getPrice(nameAction as string);
-      if (price) setDetail((prev: any) => ({ ...prev, price }));
-    }, 20000);
-    return () => clearInterval(interval);
-  }, [nameAction, getPrice]);
+
+useEffect(() => {
+  if (!nameAction) return;
+  const interval = setInterval(() => {
+    fetchDetail(nameAction as string);
+  }, 5000); 
+  return () => clearInterval(interval);
+}, [nameAction]);
 
   const handleRangeChange = (newRange: TimeRange) => {
     setRange(newRange);

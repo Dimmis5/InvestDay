@@ -165,7 +165,7 @@ const WalletProvider = ({ children }: { children: any }) => {
     try {
       if (
         valuesCachedRef.current[symbol] &&
-        valuesCachedRef.current[symbol].date > Date.now() - 10000
+        valuesCachedRef.current[symbol].date > Date.now() - 5000
       ) {
         return valuesCachedRef.current[symbol].value;
       }
