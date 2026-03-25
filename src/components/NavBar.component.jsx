@@ -204,7 +204,7 @@ const selectedLabel = isAdmin && selectedWallet?.user
               <div className={navBarStyles.portfolioBadge}>
                 <span className={navBarStyles.walletIcon}>📁</span>
                 <span className={navBarStyles.portfolioTitle}>
-                  {lang === "fr" ? `Portefeuille n°${selectedId + 1}` : `Portfolio #${selectedId + 1}`}
+                  {lang === "fr" ? `Portefeuille n°${selectedId + 1}` : `Wallet #${selectedId + 1}`}
                 </span>
                 <div className={navBarStyles.miniSelector}>
                   {wallets.map((_, index) => (
