@@ -65,7 +65,13 @@ const WalletProvider = ({ children }: { children: any }) => {
     }>
   >([]);
   const [walletsLines, setWalletsLines] = useState<any>({});
-  const [selectedId, setSelectedId] = useState(0);
+  const [selectedId, setSelectedId] = useState(() => {
+  if (typeof window === "undefined") return 0;
+  return parseInt(localStorage.getItem("selectedWalletId") || "0", 10);
+});
+useEffect(() => {
+  localStorage.setItem("selectedWalletId", String(selectedId));
+}, [selectedId]);
   const [assetsCached, setAssetsCached] = useState(0);
   const [valuesCached, setValuesCached] = useState<{
     [key: string]: { value: number; date: number };
