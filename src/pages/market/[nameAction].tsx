@@ -3,7 +3,7 @@ import Image from "next/image";
 import homeStyles from "../../styles/Home.module.css";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useFetch } from "../../context/FetchContext.js";
 import Popup from "../../components/Popup.component.jsx";
 import { Request } from "../../types/request.type";
@@ -43,6 +43,8 @@ export default function DetailAction(req: Request) {
   const [chartType, setChartType] = useState<"line" | "candlestick">("line");
   const [range, setRange] = useState<TimeRange>("1M");
   const [loadingChart, setLoadingChart] = useState(true);
+
+  const chartRef = useRef<HighchartsReact.RefObject>(null);
 
   const { user, isAuthenticated } = useAuthentification();
   const { wallets, selectedId, getPrice } = useWallet();
@@ -96,7 +98,6 @@ export default function DetailAction(req: Request) {
     setLoadingChart(true);
     try {
       const m   = (market as string) || "stocks";
-      // On fetch toujours ALL : le zoom est géré côté Highcharts via xAxis.min
       const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
       setData(res || { results: [] });
     } catch (e) {
@@ -113,7 +114,6 @@ export default function DetailAction(req: Request) {
     }
   }, [router.isReady, nameAction]);
 
-  // Recharger le graphique uniquement si le symbole change (plus besoin de recharger pour range)
   useEffect(() => {
     if (!nameAction) return;
     const interval = setInterval(async () => {
@@ -123,10 +123,27 @@ export default function DetailAction(req: Request) {
     return () => clearInterval(interval);
   }, [nameAction, getPrice]);
 
+  const handleRangeChange = (newRange: TimeRange) => {
+    setRange(newRange);
+    
+    if (chartRef.current && chartRef.current.chart) {
+      const chart = chartRef.current.chart;
+      const xAxis = chart.xAxis[0];
+      
+      let min = getRangeMin(newRange);
+      const max = Date.now();
+
+      if (newRange === "ALL") {
+        const extremes = xAxis.getExtremes();
+        min = extremes.dataMin;
+      }
+
+      xAxis.setExtremes(min, max);
+    }
+  };
+
   const toggleBtnStyle  = (active: boolean) => ({ padding: '8px 18px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '700' as const, fontSize: '12px', backgroundColor: active ? '#f3ca3e' : '#f0f0f0', color: active ? '#1a1a1a' : '#888' });
   const rangeBtnStyle   = (active: boolean) => ({ padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '800' as const, border: active ? '1px solid #f3ca3e' : '1px solid #eee', backgroundColor: active ? '#f3ca3e' : '#fff', color: active ? '#fff' : '#888' });
-
-  const rangeMin = getRangeMin(range);
 
   const commonConfig: any = {
     chart: { height: 500, backgroundColor: 'transparent', animation: false },
@@ -135,9 +152,6 @@ export default function DetailAction(req: Request) {
       type: 'datetime',
       ordinal: market !== 'crypto',
       labels: { style: { color: '#888' } },
-      // Zoom sur la plage sélectionnée, mais tout l'historique reste accessible via le navigator
-      min: rangeMin,
-      max: Date.now(),
     },
     yAxis: { labels: { style: { color: '#888' }, format: '{value}$' }, opposite: true, gridLineColor: '#f5f5f5' },
     rangeSelector: { enabled: false },
@@ -148,7 +162,7 @@ export default function DetailAction(req: Request) {
       series: {
         animation: false,
         dataGrouping: { enabled: false },
-        getExtremesFromAll: true, // Le navigator voit tout le dataset même hors de la fenêtre zoomée
+        getExtremesFromAll: true,
       }
     }
   };
@@ -193,7 +207,7 @@ export default function DetailAction(req: Request) {
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
               {(["1H", "1D", "1W", "1M", "ALL"] as TimeRange[]).map((r) => (
-                <button key={r} onClick={() => setRange(r)} style={rangeBtnStyle(range === r)}>{r}</button>
+                <button key={r} onClick={() => handleRangeChange(r)} style={rangeBtnStyle(range === r)}>{r}</button>
               ))}
             </div>
           </div>
@@ -203,6 +217,7 @@ export default function DetailAction(req: Request) {
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '450px' }}>{t.loading}</div>
             ) : chartData.line.length > 0 ? (
               <HighchartsReact
+                ref={chartRef}
                 key={`${nameAction}`}
                 highcharts={Highcharts}
                 constructorType={"stockChart"}
