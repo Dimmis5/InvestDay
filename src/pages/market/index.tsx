@@ -18,7 +18,7 @@ const MARKET_TO_TYPE: Record<string, string> = {
 
 function getMarketStatus(market: string): { open: boolean; label: { fr: string; en: string } } {
   const now = new Date();
-  const day = now.getUTCDay(); // 0=dim, 6=sam
+  const day = now.getUTCDay();
   const hour = now.getUTCHours();
   const min = now.getUTCMinutes();
   const totalMin = hour * 60 + min;
@@ -39,7 +39,7 @@ function getMarketStatus(market: string): { open: boolean; label: { fr: string; 
 
   if (market === "stocks") {
     const isWeekend = day === 0 || day === 6;
-    const inSession = totalMin >= 870 && totalMin < 1350; 
+    const inSession = totalMin >= 870 && totalMin < 1350;
     const open = !isWeekend && inSession;
     return {
       open,
@@ -126,8 +126,7 @@ export default function Market() {
       } else {
         const type = MARKET_TO_TYPE[filter] || "us-stock";
         const res = await fetch.get(`/api/stock/symbols?type=${type}&page=${p}&limit=20`);
-        
-        const list = (res?.symbols || []).slice(0, 20); 
+        const list = (res?.symbols || []).slice(0, 20);
         setSymbols(list);
         setHasMore((res?.symbols || []).length > 0);
       }
@@ -154,17 +153,25 @@ export default function Market() {
   }
 
   useEffect(() => {
-    const delay = setTimeout(() => {
+    const delay = setTimeout(async () => {
       if (input.trim().length > 1) {
-        fetch.get("/api/stock/search?term=" + input)
-          .then((results) => setSearchResults(results || []))
-          .catch((err) => console.error("Search Error:", err));
+        try {
+          const results = await fetch.get("/api/stock/search?term=" + input);
+          const all: any[] = results || [];
+          const filtered = marketFilter === "all"
+            ? all
+            : all.filter((item: any) => item.market === marketFilter);
+
+          setSearchResults(filtered);
+        } catch (err) {
+          console.error("Search Error:", err);
+        }
       } else {
         setSearchResults([]);
       }
     }, 600);
     return () => clearTimeout(delay);
-  }, [input, fetch]);
+  }, [input, fetch, marketFilter]);
 
   const onChange = (e: any) => setInput(e.target.value);
   const handleKeyDown = (e: any) => {
@@ -178,19 +185,18 @@ export default function Market() {
       const name = (item.name || "").toLowerCase();
       const symbol = (item.symbol || "").toLowerCase();
       const warrantTerm = t.noWarrants.toLowerCase();
-      const bannedKeywords = ["anti", "0xbtc", "0xbitcoin","btcone", "bitcoinote", "bitcoin 2","bitcoin 3","bitcoin adult", "bitcoin air","bether","ethos","ethplode"];
+      const bannedKeywords = ["anti", "0xbtc", "0xbitcoin", "btcone", "bitcoinote", "bitcoin 2", "bitcoin 3", "bitcoin adult", "bitcoin air", "bether", "ethos", "ethplode", "kint", "beamx"];
 
-      const isBanned = bannedKeywords.some(keyword => 
+      const isBanned = bannedKeywords.some(keyword =>
         name.includes(keyword) || symbol.includes(keyword)
       );
-
       const isWarrant = name.includes(warrantTerm);
 
       return !isBanned && !isWarrant;
     })
     .map((item: any) => ({
       symbol: item.symbol,
-      name: item.name,
+      name:   item.name,
       market: item.market || (isSearching ? "stocks" : "")
     }));
 
@@ -223,39 +229,39 @@ export default function Market() {
       </Head>
 
       <main className={homeStyles.pageContainer}>
-{/* Header */}
-<div id="tour-market-info" className={homeStyles.marketHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-  <div>
-    <h1 className={homeStyles.marketTitle}>{t.title}</h1>
-    <p className={homeStyles.marketSub}>{t.sub}</p>
-  </div>
+        {/* Header */}
+        <div id="tour-market-info" className={homeStyles.marketHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <div>
+            <h1 className={homeStyles.marketTitle}>{t.title}</h1>
+            <p className={homeStyles.marketSub}>{t.sub}</p>
+          </div>
 
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Statuts marchés */}
+            <div className={marketStyles.marketStatusContainer}>
+              {[
+                { label: t.filterStocks, info: lang === 'fr' ? '15h30 – 22h30' : '9:30 AM – 4:30 PM' },
+                { label: t.filterForex,  info: lang === 'fr' ? 'Lun – Ven'     : 'Mon – Fri' },
+                { label: t.filterCrypto, info: '24/7' },
+              ].map(({ label, info }) => (
+                <div key={label} className={marketStyles.marketStatusRow}>
+                  <span className={marketStyles.marketStatusLabel}>{label}</span>
+                  <span className={marketStyles.marketStatusBadge}>🕐 {info}</span>
+                </div>
+              ))}
+            </div>
 
-    {/* Statuts marchés */}
-<div className={marketStyles.marketStatusContainer}>
-  {[
-    { label: t.filterStocks, info: lang === 'fr' ? '15h30 – 22h30' : '9:30 AM – 4:30 PM' },
-    { label: t.filterForex,  info: lang === 'fr' ? 'Lun – Ven'     : 'Mon – Fri' },
-    { label: t.filterCrypto, info: '24/7' },
-  ].map(({ label, info }) => (
-    <div key={label} className={marketStyles.marketStatusRow}>
-      <span className={marketStyles.marketStatusLabel}>{label}</span>
-      <span className={marketStyles.marketStatusBadge}>🕐 {info}</span>
-    </div>
-  ))}
-</div>
-    {/* Valeur disponible */}
-    <div className={homeStyles.statCard} style={{ display: 'flex', alignItems: 'center', padding: '12px 25px' }}>
-      <Image src="/assets/cash.svg" width={25} height={25} alt="cash" style={{ marginRight: '12px' }} />
-      <div>
-        <span style={{ fontSize: '11px', color: '#888', display: 'block', textTransform: 'uppercase' }}>{t.cashLabel}</span>
-        <span style={{ fontWeight: '700', fontSize: '18px' }}>{(wallets[selectedId]?.cash || 0).toLocaleString()} $</span>
-      </div>
-    </div>
+            {/* Valeur disponible */}
+            <div className={homeStyles.statCard} style={{ display: 'flex', alignItems: 'center', padding: '12px 25px' }}>
+              <Image src="/assets/cash.svg" width={25} height={25} alt="cash" style={{ marginRight: '12px' }} />
+              <div>
+                <span style={{ fontSize: '11px', color: '#888', display: 'block', textTransform: 'uppercase' }}>{t.cashLabel}</span>
+                <span style={{ fontWeight: '700', fontSize: '18px' }}>{(wallets[selectedId]?.cash || 0).toLocaleString()} $</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  </div>
-</div>
         {/* Filtres portefeuille */}
         <div className={homeStyles.filterBar} style={{ marginBottom: '20px' }}>
           {wallets.map((_, index) => (
@@ -348,7 +354,6 @@ export default function Market() {
             </button>
           </div>
         )}
-
       </main>
     </>
   );
