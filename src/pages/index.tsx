@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useLanguage } from "../context/LanguageContext";
 import { useWallet } from "../context/WalletContext";
 import { useAuthentification } from "../context/AuthContext";
+import { useEffect } from "react"; 
 
 const STARTING_CASH = 10000;
 
@@ -32,11 +33,11 @@ export default function Home() {
         { icon: "⚠️", title: "Ordre refusé", desc: "Si vous n'avez pas assez de cash ou de titres en portefeuille, votre ordre sera automatiquement annulé. Vérifiez votre solde avant de trader !" },
         { icon: "📊", title: "Suivi de performance", desc: "Consultez la page Classement pour voir votre rang en temps réel et vous comparer aux autres investisseurs. La compétition est ouverte à tous !" },
         { icon: "🔒", title: "Argent virtuel uniquement", desc: "Tout l'argent utilisé sur Invest Days est 100% virtuel. Aucune transaction réelle n'est effectuée. Tradez sans risque et apprenez les marchés financiers !" },
-        { icon: "🎓", title: "Objectif pédagogique", desc: "Invest Days est avant tout un outil d'apprentissage. L'objectif est de comprendre le fonctionnement des marchés financiers de manière ludique et interactive." },
+        { icon: "🎓", title: "Objectif pédagogique", desc: "Invest Days est avant tout un outil d'apprentissage. L'objectif est de comprendre le fonctionnement des marchés financiers de manière ludique et interactive !" },
       ],
       dashTitle: "📊 Mon Tableau de Bord",
       cashLabel: "Cash disponible",
-      assetsLabel: "Valeur des actifs",
+      assetsLabel: "Valeur des actions",
       totalLabel: "Valeur totale",
       profitLabel: "Profit / Perte",
       portfolioTitle: "Mon Portefeuille",
@@ -56,14 +57,14 @@ export default function Home() {
       poweredBy: "Market data by",
       hello: "Hello",
       sub: "Welcome to Invest Days",
-      rulesTitle: "📋 Hackathon Rules",
+      rulesTitle: "📋 hackathon Rules",
       rulesSub: "Everything you need to know to participate",
       rules: [
         { icon: "💰", title: "Starting Capital", desc: "Every player starts with $10,000 in virtual cash. The capital is identical for everyone — make it grow as much as possible!" },
         { icon: "📈", title: "Buying a Stock", desc: "Go to the Markets page, search for an asset (stock, crypto, forex) and place a buy order. The price is the real-time market price." },
         { icon: "📉", title: "Selling a Stock", desc: "From your wallet page, select the asset you want to sell and place a sell order. You can only sell what you own." },
         { icon: "🏆", title: "How to Win", desc: "The leaderboard is based on your total profit/loss. The more your capital has grown from the starting $10,000, the higher you rank." },
-        { icon: "👛", title: "Multiple Portfolios", desc: "You can create up to 3 different wallets to diversify your strategies. Only your best wallet counts for the leaderboard." },
+        { icon: "👛", title: "Multiple Portfolios", desc: "You can create up to 3 different wallet to diversify your strategies. Only your best wallet counts for the leaderboard." },
         { icon: "⏱️", title: "Market Hours", desc: "Orders are only executed when markets are open. Outside trading hours, your orders stay pending until the next market open." },
         { icon: "⚠️", title: "Rejected Order", desc: "If you don't have enough cash or shares, your order will be automatically cancelled. Check your balance before trading!" },
         { icon: "📊", title: "Performance Tracking", desc: "Check the Leaderboard page to see your rank in real-time and compare yourself with other investors. The competition is open to all!" },
@@ -105,8 +106,7 @@ export default function Home() {
     : [];
 
   const recentTx = [...(currentWallet?.transactions || [])]
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const statusColor: any = { EXECUTED: '#2ecc71', PENDING: '#f39c12', FAILED: '#e74c3c', CANCELLED: '#e74c3c' };
   const statusLabel: any = { EXECUTED: t.executed, PENDING: t.pending, FAILED: t.failed, CANCELLED: t.failed };
@@ -117,6 +117,23 @@ export default function Home() {
         <title>Invest Days - {t.title}</title>
         <link rel="icon" href="/favicon3.ico" />
       </Head>
+
+      <style jsx>{`
+        .custom-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+          background: #f3ca3e;
+          border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+          background: #d4ae31;
+        }
+      `}</style>
 
       <main className={homeStyles.pageContainer}>
         {/* Bande jaune */}
@@ -171,6 +188,8 @@ export default function Home() {
         </div>
 
         <div className={homeStyles.dashboardGrid}>
+          
+          {/* PORTEFEUILLE AVEC SCROLLBAR */}
           <div id="tour-portfolio-preview" className={homeStyles.panel}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0 }}>{t.portfolioTitle}</h3>
@@ -181,70 +200,75 @@ export default function Home() {
                 {t.goMarket}
               </button>
             </div>
-            {lines.length === 0 ? (
-              <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>{t.noAssets}</p>
-            ) : (
-              lines.map((line: any, i: number) => {
-                const currentPrice = valuesCached[line.symbol]?.value || 0;
-                const lineValue = line.quantity * currentPrice;
-                const avgPrice = line.valueAtExecution?.length
-                  ? line.valueAtExecution.reduce((sum: number, v: any) => sum + v.price * v.quantity, 0) /
-                    line.valueAtExecution.reduce((sum: number, v: any) => sum + v.quantity, 0)
-                  : 0;
-                const lineProfit = avgPrice > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
-                const linePos = lineProfit >= 0;
-                return (
-                  <div key={i} className={homeStyles.assetRow}>
-                    <div>
-                      <div style={{ fontWeight: '700', fontSize: '14px' }}>{line.symbol}</div>
-                      <div style={{ fontSize: '12px', color: '#888' }}>
-                        {Number(line.quantity).toFixed(2)} {t.quantity} × {currentPrice.toFixed(2)} $
+            <div className="custom-scroll" style={{ maxHeight: '450px', overflowY: 'auto', paddingRight: '10px' }}>
+              {lines.length === 0 ? (
+                <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>{t.noAssets}</p>
+              ) : (
+                lines.map((line: any, i: number) => {
+                  const currentPrice = valuesCached[line.symbol]?.value || 0;
+                  const lineValue = line.quantity * currentPrice;
+                  const avgPrice = line.valueAtExecution?.length
+                    ? line.valueAtExecution.reduce((sum: number, v: any) => sum + v.price * v.quantity, 0) /
+                      line.valueAtExecution.reduce((sum: number, v: any) => sum + v.quantity, 0)
+                    : 0;
+                  const lineProfit = avgPrice > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
+                  const linePos = lineProfit >= 0;
+                  return (
+                    <div key={i} className={homeStyles.assetRow}>
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '14px' }}>{line.symbol}</div>
+                        <div style={{ fontSize: '12px', color: '#888' }}>
+                          {Number(line.quantity).toFixed(2)} {t.quantity} × {currentPrice.toFixed(2)} $
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: '700', fontSize: '14px' }}>{lineValue.toFixed(2)} $</div>
+                        <div style={{ fontSize: '12px', color: linePos ? '#2ecc71' : '#e74c3c' }}>
+                          {linePos ? '+' : ''}{lineProfit.toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* TRANSACTIONS AVEC SCROLLBAR */}
+          <div id="tour-transactions" className={homeStyles.panel}>
+            <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 20px 0' }}>{t.transactions}</h3>
+            <div className="custom-scroll" style={{ maxHeight: '450px', overflowY: 'auto', paddingRight: '10px' }}>
+              {recentTx.length === 0 ? (
+                <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>{t.noTx}</p>
+              ) : (
+                recentTx.map((tx: any, i: number) => (
+                  <div key={i} className={homeStyles.txRow}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{
+                        backgroundColor: tx.isSellOrder ? '#fceae9' : '#e6f9f1',
+                        color: tx.isSellOrder ? '#e74c3c' : '#2ecc71',
+                        fontSize: '11px', fontWeight: '700',
+                        padding: '3px 8px', borderRadius: '6px'
+                      }}>
+                        {tx.isSellOrder ? t.sell : t.buy}
+                      </span>
+                      <div>
+                        <div style={{ fontWeight: '700' }}>{tx.symbol}</div>
+                        <div style={{ color: '#888', fontSize: '11px' }}>{Number(tx.quantity).toFixed(2)} {t.quantity}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: '700', fontSize: '14px' }}>{lineValue.toFixed(2)} $</div>
-                      <div style={{ fontSize: '12px', color: linePos ? '#2ecc71' : '#e74c3c' }}>
-                        {linePos ? '+' : ''}{lineProfit.toFixed(2)}%
+                      <div style={{ fontWeight: '700' }}>
+                        {tx.valueAtExecution ? `${(tx.valueAtExecution * tx.quantity).toFixed(2)} $` : '—'}
+                      </div>
+                      <div style={{ fontSize: '11px', color: statusColor[tx.status] || '#888' }}>
+                        {statusLabel[tx.status] || tx.status}
                       </div>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-
-          <div id="tour-transactions" className={homeStyles.panel}>
-            <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 20px 0' }}>{t.transactions}</h3>
-            {recentTx.length === 0 ? (
-              <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>{t.noTx}</p>
-            ) : (
-              recentTx.map((tx: any, i: number) => (
-                <div key={i} className={homeStyles.txRow}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{
-                      backgroundColor: tx.isSellOrder ? '#fceae9' : '#e6f9f1',
-                      color: tx.isSellOrder ? '#e74c3c' : '#2ecc71',
-                      fontSize: '11px', fontWeight: '700',
-                      padding: '3px 8px', borderRadius: '6px'
-                    }}>
-                      {tx.isSellOrder ? t.sell : t.buy}
-                    </span>
-                    <div>
-                      <div style={{ fontWeight: '700' }}>{tx.symbol}</div>
-                      <div style={{ color: '#888', fontSize: '11px' }}>{Number(tx.quantity).toFixed(2)} {t.quantity}</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: '700' }}>
-                      {tx.valueAtExecution ? `${(tx.valueAtExecution * tx.quantity).toFixed(2)} $` : '—'}
-                    </div>
-                    <div style={{ fontSize: '11px', color: statusColor[tx.status] || '#888' }}>
-                      {statusLabel[tx.status] || tx.status}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
 
@@ -270,7 +294,6 @@ export default function Home() {
 
 export async function getServerSideProps() {
   const cronKey = process.env.CRON_SECRET || ""; 
-  
   try {
     await fetch(`http://127.0.0.1:3000/api/cron/process?key=${cronKey}`);
   } catch (e) {
