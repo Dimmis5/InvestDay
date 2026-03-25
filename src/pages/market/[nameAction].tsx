@@ -8,7 +8,7 @@ import { useFetch } from "../../context/FetchContext.js";
 import Popup from "../../components/Popup.component.jsx";
 import { Request } from "../../types/request.type";
 import { useWallet } from "../../context/WalletContext";
-import { useLanguage } from "../../context/LanguageContext"; 
+import { useLanguage } from "../../context/LanguageContext";
 import Highcharts from "highcharts/highstock";
 import HighchartsReact from "highcharts-react-official";
 import { useAuthentification } from "../../context/AuthContext";
@@ -22,6 +22,18 @@ function isWithinTradingHours(): boolean {
   const totalMin = utcHour * 60 + utcMin;
   const day = now.getUTCDay();
   return day >= 1 && day <= 5 && totalMin >= 870 && totalMin < 1260;
+}
+
+function getRangeMin(range: TimeRange): number | undefined {
+  const now = Date.now();
+  const map: Record<TimeRange, number | undefined> = {
+    "1H":  now - 60 * 60 * 1000,
+    "1D":  now - 24 * 60 * 60 * 1000,
+    "1W":  now - 7  * 24 * 60 * 60 * 1000,
+    "1M":  now - 30 * 24 * 60 * 60 * 1000,
+    "ALL": undefined,
+  };
+  return map[range];
 }
 
 export default function DetailAction(req: Request) {
@@ -47,13 +59,13 @@ export default function DetailAction(req: Request) {
 
   const chartData = useMemo(() => {
     let results = data?.results ? [...data.results] : [];
-    
+
     if (results.length === 0 && detail?.price) {
       const now = Date.now();
-      const startTime = now - (24 * 60 * 60 * 1000); 
+      const startTime = now - (24 * 60 * 60 * 1000);
       results = [
         { t: startTime, c: detail.price, o: detail.price, h: detail.price, l: detail.price },
-        { t: now, c: detail.price, o: detail.price, h: detail.price, l: detail.price }
+        { t: now,       c: detail.price, o: detail.price, h: detail.price, l: detail.price }
       ];
     } else if (results.length > 0 && detail?.price) {
       const lastPointTime = Number(results[results.length - 1].t);
@@ -62,44 +74,46 @@ export default function DetailAction(req: Request) {
       }
     }
 
-    const line = results.map((i: any) => [Number(i.t), i.c]);
+    const line   = results.map((i: any) => [Number(i.t), i.c]);
     const candle = results.map((i: any) => [Number(i.t), i.o ?? i.c, i.h ?? i.c, i.l ?? i.c, i.c]);
     return { line, candle };
   }, [data, detail?.price]);
 
-async function fetchDetail(symbol: string) {
-  try {
-    const response = await fetch.get("/api/stock/detail?symbol=" + symbol);
-    const price = await getPrice(symbol);
-    const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);  
-    setDetail({ 
-      ...response.results, 
-      price,
-      market_status: lastPriceRes?.results?.[0]?.market_status || (isWithinTradingHours() ? "open" : "closed")
-    });
-  } catch (e) {}
-}
+  async function fetchDetail(symbol: string) {
+    try {
+      const response    = await fetch.get("/api/stock/detail?symbol=" + symbol);
+      const price       = await getPrice(symbol);
+      const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);
+      setDetail({
+        ...response.results,
+        price,
+        market_status: lastPriceRes?.results?.[0]?.market_status || (isWithinTradingHours() ? "open" : "closed")
+      });
+    } catch (e) {}
+  }
 
-  async function fetchData(symbol: string, selectedRange: TimeRange) {
+  async function fetchData(symbol: string) {
     setLoadingChart(true);
     try {
-      const m = (market as string) || "stocks";
-      const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=${selectedRange}`);
+      const m   = (market as string) || "stocks";
+      // On fetch toujours ALL : le zoom est géré côté Highcharts via xAxis.min
+      const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
       setData(res || { results: [] });
-    } catch (e) { 
-      setData({ results: [] }); 
-    } finally { 
-      setLoadingChart(false); 
+    } catch (e) {
+      setData({ results: [] });
+    } finally {
+      setLoadingChart(false);
     }
   }
 
   useEffect(() => {
     if (router.isReady && nameAction) {
-      fetchData(nameAction as string, range);
+      fetchData(nameAction as string);
       fetchDetail(nameAction as string);
     }
-  }, [router.isReady, nameAction, range]);
+  }, [router.isReady, nameAction]);
 
+  // Recharger le graphique uniquement si le symbole change (plus besoin de recharger pour range)
   useEffect(() => {
     if (!nameAction) return;
     const interval = setInterval(async () => {
@@ -109,28 +123,33 @@ async function fetchDetail(symbol: string) {
     return () => clearInterval(interval);
   }, [nameAction, getPrice]);
 
-  const toggleBtnStyle = (active: boolean) => ({ padding: '8px 18px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '700' as const, fontSize: '12px', backgroundColor: active ? '#f3ca3e' : '#f0f0f0', color: active ? '#1a1a1a' : '#888' });
-  const rangeBtnStyle = (active: boolean) => ({ padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '800' as const, border: active ? '1px solid #f3ca3e' : '1px solid #eee', backgroundColor: active ? '#f3ca3e' : '#fff', color: active ? '#fff' : '#888' });
+  const toggleBtnStyle  = (active: boolean) => ({ padding: '8px 18px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '700' as const, fontSize: '12px', backgroundColor: active ? '#f3ca3e' : '#f0f0f0', color: active ? '#1a1a1a' : '#888' });
+  const rangeBtnStyle   = (active: boolean) => ({ padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '800' as const, border: active ? '1px solid #f3ca3e' : '1px solid #eee', backgroundColor: active ? '#f3ca3e' : '#fff', color: active ? '#fff' : '#888' });
+
+  const rangeMin = getRangeMin(range);
 
   const commonConfig: any = {
     chart: { height: 500, backgroundColor: 'transparent', animation: false },
     accessibility: { enabled: false },
-    xAxis: { 
-      type: 'datetime', 
+    xAxis: {
+      type: 'datetime',
       ordinal: market !== 'crypto',
-      labels: { style: { color: '#888' } } 
+      labels: { style: { color: '#888' } },
+      // Zoom sur la plage sélectionnée, mais tout l'historique reste accessible via le navigator
+      min: rangeMin,
+      max: Date.now(),
     },
     yAxis: { labels: { style: { color: '#888' }, format: '{value}$' }, opposite: true, gridLineColor: '#f5f5f5' },
     rangeSelector: { enabled: false },
     navigator: { enabled: true, maskFill: 'rgba(243, 202, 62, 0.05)', series: { color: '#f3ca3e' } },
     scrollbar: { enabled: true, liveRedraw: false },
     credits: { enabled: false },
-    plotOptions: { 
-        series: { 
-            animation: false, 
-            dataGrouping: { enabled: range === "ALL" },
-            getExtremesFromData: false 
-        } 
+    plotOptions: {
+      series: {
+        animation: false,
+        dataGrouping: { enabled: false },
+        getExtremesFromAll: true, // Le navigator voit tout le dataset même hors de la fenêtre zoomée
+      }
     }
   };
 
@@ -146,8 +165,8 @@ async function fetchDetail(symbol: string) {
             <h1 className={homeStyles.marketTitle}>{nameAction as string}</h1>
             <p className={homeStyles.marketSub}>
               {(name as string) || detail?.name || nameAction} • {
-                detail?.price 
-                  ? `${detail.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 })}$` 
+                detail?.price
+                  ? `${detail.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 })}$`
                   : "Prix indisponible"
               }
             </p>
@@ -169,13 +188,13 @@ async function fetchDetail(symbol: string) {
         <div className={homeStyles.assetCard} style={{ minHeight: '600px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => setChartType("line")} style={toggleBtnStyle(chartType === "line")}>📈 {t.line}</button>
-                <button onClick={() => setChartType("candlestick")} style={toggleBtnStyle(chartType === "candlestick")}>🕯️ {t.candle}</button>
+              <button onClick={() => setChartType("line")}        style={toggleBtnStyle(chartType === "line")}>📈 {t.line}</button>
+              <button onClick={() => setChartType("candlestick")} style={toggleBtnStyle(chartType === "candlestick")}>🕯️ {t.candle}</button>
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
-                {(["1H", "1D", "1W", "1M", "ALL"] as TimeRange[]).map((r) => (
-                    <button key={r} onClick={() => setRange(r)} style={rangeBtnStyle(range === r)}>{r}</button>
-                ))}
+              {(["1H", "1D", "1W", "1M", "ALL"] as TimeRange[]).map((r) => (
+                <button key={r} onClick={() => setRange(r)} style={rangeBtnStyle(range === r)}>{r}</button>
+              ))}
             </div>
           </div>
 
@@ -183,36 +202,39 @@ async function fetchDetail(symbol: string) {
             {loadingChart ? (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '450px' }}>{t.loading}</div>
             ) : chartData.line.length > 0 ? (
-              <HighchartsReact 
-                key={`${nameAction}`} 
-                highcharts={Highcharts} 
-                constructorType={"stockChart"} 
+              <HighchartsReact
+                key={`${nameAction}`}
+                highcharts={Highcharts}
+                constructorType={"stockChart"}
                 options={{
-                  ...commonConfig, 
-                  series: [{ 
-                    type: chartType === "line" ? 'area' : 'candlestick', 
-                    name: nameAction, 
-                    data: chartType === "line" ? chartData.line : chartData.candle, 
+                  ...commonConfig,
+                  series: [{
+                    type: chartType === "line" ? 'area' : 'candlestick',
+                    name: nameAction,
+                    data: chartType === "line" ? chartData.line : chartData.candle,
                     color: chartType === "line" ? '#f3ca3e' : '#e74c3c',
                     upColor: '#2ecc71',
-                    fillColor: chartType === "line" ? { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, 'rgba(243, 202, 62, 0.3)'], [1, 'rgba(243, 202, 62, 0.0)']] } : undefined
+                    fillColor: chartType === "line"
+                      ? { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, 'rgba(243, 202, 62, 0.3)'], [1, 'rgba(243, 202, 62, 0.0)']] }
+                      : undefined
                   }]
-                }} 
+                }}
               />
             ) : (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>{t.noData}</div>
             )}
           </div>
         </div>
-        <Popup 
-          title={t.popTitle} 
-          subtitle={`${t.popSub} ${nameAction}`} 
-          maxCount={detail?.price ? (wallets[selectedId]?.cash || 0) / detail.price : 0} 
-          symbol={nameAction as string} 
-          sell={false} 
-          open={isOpen} 
-          close={() => setIsOpen(false)} 
-          lang={lang} 
+
+        <Popup
+          title={t.popTitle}
+          subtitle={`${t.popSub} ${nameAction}`}
+          maxCount={detail?.price ? (wallets[selectedId]?.cash || 0) / detail.price : 0}
+          symbol={nameAction as string}
+          sell={false}
+          open={isOpen}
+          close={() => setIsOpen(false)}
+          lang={lang}
           isMarketOpen={detail?.market_status === "open"}
         />
       </main>
