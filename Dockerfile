@@ -1,21 +1,34 @@
 # Stage 1: deps
 FROM node:25-alpine3.22 AS deps
+
 WORKDIR /app
+
 RUN apk add --no-cache openssl
+
 COPY package*.json ./
-RUN npm ci --only=production=false
+RUN npm install
 
 # Stage 2: builder
 FROM node:25-alpine3.22 AS builder
+
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Générer le client Prisma
 RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" ./node_modules/.bin/prisma generate
+
+# Générer le client Prisma
+#RUN ./node_modules/.bin/prisma generate
+
+# Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 3: runner
 FROM node:25-alpine3.22 AS runner
+
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
