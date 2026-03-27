@@ -17,6 +17,7 @@ function Popup({
 }) {
   const { wallets, selectedId } = useWallet();
   const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const fetch = useFetch();
   const isBTC = symbol?.toUpperCase() === "BTCUSD";
   const step = isBTC ? 0.1 : 0.1;
@@ -46,9 +47,10 @@ function Popup({
   };
   const t = translations[lang] || translations.fr;
 
-  useEffect(() => {
-    setCount(0);
-  }, [open, symbol]);
+useEffect(() => {
+  setCount(0);
+  setIsLoading(false);
+}, [open, symbol]);
 
   const increment = () => {
     setCount((prev) => {
@@ -81,40 +83,46 @@ function Popup({
     }
   };
 
-  const executeOrder = () => {
-    const quantity = Number(count);
-    if (quantity <= 0) {
-      toast.error(t.errQty, {
+const executeOrder = () => {
+  const quantity = Number(count);
+  if (quantity <= 0) {
+    toast.error(t.errQty, {
+      className: PopupStyles.toastError,
+      progressClassName: PopupStyles.toastProgressError,
+    });
+    return;
+  }
+
+  if (isLoading) return;
+  setIsLoading(true);
+
+  const payload = {
+    walletId: wallets[selectedId].id,
+    symbol: symbol,
+    amount: quantity.toFixed(precision),
+    selling: sell ? "true" : "false",
+  };
+
+  fetch
+    .post("/api/transactions", payload)
+    .then(() => {
+      const successMsg = isMarketOpen ? t.successOrder : t.successOrderPending;
+      toast.success(successMsg, {
+        className: PopupStyles.toastSuccess,
+        progressClassName: PopupStyles.toastProgressSuccess,
+      });
+      close();
+    })
+    .catch(() => {
+      toast.error(t.errOrder, {
         className: PopupStyles.toastError,
         progressClassName: PopupStyles.toastProgressError,
       });
-      return;
-    }
-
-    const payload = {
-      walletId: wallets[selectedId].id,
-      symbol: symbol,
-      amount: quantity.toFixed(precision),
-      selling: sell ? "true" : "false",
-    };
-
-    fetch
-      .post("/api/transactions", payload)
-      .then(() => {
-        const successMsg = isMarketOpen ? t.successOrder : t.successOrderPending;
-        toast.success(successMsg, {
-          className: PopupStyles.toastSuccess,
-          progressClassName: PopupStyles.toastProgressSuccess,
-        });
-        close();
-      })
-      .catch(() => {
-        toast.error(t.errOrder, {
-          className: PopupStyles.toastError,
-          progressClassName: PopupStyles.toastProgressError,
-        });
-      });
-  };
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
+};
 
   if (!open) return null;
 
@@ -170,10 +178,14 @@ function Popup({
               +
             </button>
           </div>
-
-          <button className={PopupStyles.buttonBuy} onClick={executeOrder}>
-            {sell ? t.btnSell : t.btnBuy}
-          </button>
+<button 
+  className={PopupStyles.buttonBuy} 
+  onClick={executeOrder}
+  disabled={isLoading}
+  style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+>
+  {isLoading ? "..." : (sell ? t.btnSell : t.btnBuy)}
+</button>
         </div>
 
         <div className={PopupStyles.modalFooter}>
