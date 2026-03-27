@@ -270,6 +270,7 @@ useEffect(() => {
           </div>
         </div>
 
+
         <Popup
           title={t.popTitle}
           subtitle={`${t.popSub} ${nameAction}`}
@@ -280,6 +281,7 @@ useEffect(() => {
           close={() => setIsOpen(false)}
           lang={lang}
           isMarketOpen={detail?.market_status === "open"}
+          onSellConfirm={null}
         />
       </main>
     </>
