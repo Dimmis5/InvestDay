@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useFetch } from "../../context/FetchContext.js";
 import { useWallet } from "../../context/WalletContext";
 import { useLanguage } from "../../context/LanguageContext";
@@ -10,12 +10,26 @@ import marketStyles from "../../styles/Market.module.css";
 import TableSearch from "../../components/TableSearch.component.jsx";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 
+
+const ITEMS_PER_PAGE = 20;
+
 const MARKET_TO_TYPE: Record<string, string> = {
   stocks: "us-stock",
   crypto: "crypto",
   forex:  "forex",
 };
 
+const BANNED_KEYWORDS = ["anti", "0xbtc", "0xbitcoin", "btcone", "bitcoinote", "bitcoin 2", "bitcoin 3", "bitcoin adult", "bitcoin air", "bether", "ethos", "ethplode", "kint", "beamx", "hyper", "hyper pay", "voltusd", "fetusdc", "mxceur"];
+
+const CRYPTO_SYMBOLS = [
+  "BTC", "ETH", "USDT", "BNB", "SOL", "XRP", "USDC", "ADA", "DOGE", "AVAX", "SHIB", "DOT", "LINK", "TRX", "MATIC", "WBTC", "NEAR", "UNI", "LTC", "DAI", "BCH", "PEPE", "LEO", "ICP", "APT", "ETC", "RENDER", "STX", "FIL", "MNT", "ARB", "IMX", "KAS", "VET", "OP", "MKR", "GRT", "LDO", "INJ", "RUNE", "OKB", "THETA", "FTM", "BGB", "FET", "JUP", "BEAM", "CORE", "PYTH", "FLOKI", "BONK", "ONDO", "SEI", "GALA", "WIF", "PENDLE", "AR", "TIA", "HBAR", "ATOM", "W", "AAVE", "ALGO", "QNT", "FLOW", "SNX", "EGLD", "SAND", "MANA", "AXS", "EOS", "NEO", "IOTA", "BSV", "XLM", "XMR", "ZEC", "DASH", "BTG", "CHZ", "HOT", "ENJ", "ZIL", "BAT", "ANKR", "RVN", "KAVA", "LRC", "KNC", "CRV", "1INCH", "SUSHI", "YFI", "COMP", "BAL", "UMA", "DYDX", "WOO", "GMX", "RPL", "SSV", "LPT", "ENS", "GLMR", "MOVR", "MINA", "ROSE", "CELO", "METIS", "TWT", "STRK", "ZETA", "MANTA", "ALT", "SATS", "ORDI", "BOME", "MEME", "BLUR", "XAI", "MAGIC", "GNS", "JOE", "WELL", "FLUX", "AKT", "NOS", "PRIME", "TRAC", "PAXG", "XDC", "BTT", "VTHO", "BICO", "IOTX", "SCRT", "CKB", "CEL", "TEL", "ONE", "WIN", "SKL", "GAL", "GMT", "APE", "ARKM", "ID", "MAV", "EDU", "HOOK", "POLYX", "RIF", "STG", "RDNT", "HFT", "LQTY", "GTC", "OCEAN", "AGIX", "POL", "KDA", "JASMY", "RNDR", "HYPE"
+];
+
+const CRYPTO_DATABASE = CRYPTO_SYMBOLS.map(symbol => ({
+  symbol: `${symbol}USD`,
+  name: symbol,
+  market: "crypto"
+}));
 
 const POPULAR_STOCKS = [
   { symbol: "AAPL",  name: "Apple Inc.",              market: "stocks" },
@@ -40,24 +54,6 @@ const POPULAR_STOCKS = [
   { symbol: "BABA",  name: "Alibaba Group",            market: "stocks" },
 ];
 
-const POPULAR_CRYPTO = [
-  { symbol: "BTCUSD",   name: "Bitcoin / USD",      market: "crypto" },
-  { symbol: "ETHUSD",   name: "Ethereum / USD",     market: "crypto" },
-  { symbol: "BNBUSD",   name: "Binance Coin / USD", market: "crypto" },
-  { symbol: "SOLUSD",   name: "Solana / USD",       market: "crypto" },
-  { symbol: "XRPUSD",   name: "XRP / USD",          market: "crypto" },
-  { symbol: "ADAUSD",   name: "Cardano / USD",      market: "crypto" },
-  { symbol: "DOGEUSD",  name: "Dogecoin / USD",     market: "crypto" },
-  { symbol: "MATICUSD", name: "Polygon / USD",      market: "crypto" },
-  { symbol: "DOTUSD",   name: "Polkadot / USD",     market: "crypto" },
-  { symbol: "LTCUSD",   name: "Litecoin / USD",     market: "crypto" },
-  { symbol: "AVAXUSD",  name: "Avalanche / USD",    market: "crypto" },
-  { symbol: "LINKUSD",  name: "Chainlink / USD",    market: "crypto" },
-  { symbol: "ATOMUSD",  name: "Cosmos / USD",       market: "crypto" },
-  { symbol: "UNIUSD",   name: "Uniswap / USD",      market: "crypto" },
-  { symbol: "XLMUSD",   name: "Stellar / USD",      market: "crypto" },
-];
-
 const POPULAR_FOREX = [
   { symbol: "EURUSD", name: "Euro / US Dollar",             market: "forex" },
   { symbol: "GBPUSD", name: "British Pound / US Dollar",    market: "forex" },
@@ -73,19 +69,18 @@ const POPULAR_FOREX = [
 
 const POPULAR_ALL = [
   ...POPULAR_STOCKS.slice(0, 8),
-  ...POPULAR_CRYPTO.slice(0, 6),
+  ...CRYPTO_DATABASE.slice(0, 6),
   ...POPULAR_FOREX.slice(0, 6),
 ];
 
 function getPopularByFilter(filter: string) {
   switch (filter) {
     case "stocks": return POPULAR_STOCKS;
-    case "crypto": return POPULAR_CRYPTO;
+    case "crypto": return CRYPTO_DATABASE.slice(0, ITEMS_PER_PAGE);
     case "forex":  return POPULAR_FOREX;
     default:       return POPULAR_ALL;
   }
 }
-
 
 export default function Market() {
   const { wallets, selectedId, selectWallet } = useWallet();
@@ -142,16 +137,20 @@ export default function Market() {
   const t = translations[lang as keyof typeof translations] || translations.fr;
 
   const loadApiSymbols = useCallback(async (filter: string, p: number) => {
+    if (filter === "crypto") {
+      setHasMore(p * ITEMS_PER_PAGE < CRYPTO_DATABASE.length);
+      return;
+    }
+
     setLoading(true);
     try {
       if (filter === "all") {
-        const [stocksRes, cryptoRes, forexRes] = await Promise.allSettled([
+        const [stocksRes, forexRes] = await Promise.allSettled([
           fetch.get(`/api/stock/symbols?type=us-stock&page=${p}&limit=10`),
-          fetch.get(`/api/stock/symbols?type=crypto&page=${p}&limit=10`),
           fetch.get(`/api/stock/symbols?type=forex&page=${p}&limit=10`),
         ]);
-        const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 8) : [];
-        const crypto = cryptoRes.status === "fulfilled" ? (cryptoRes.value?.symbols || []).slice(0, 6) : [];
+        const stocks = stocksRes.status === "fulfilled" ? (stocksRes.value?.symbols || []).slice(0, 10) : [];
+        const crypto = CRYPTO_DATABASE.slice((p - 1) * 6, p * 6);
         const forex  = forexRes.status  === "fulfilled" ? (forexRes.value?.symbols  || []).slice(0, 6) : [];
         const combined = [...stocks, ...crypto, ...forex];
         setApiSymbols(combined);
@@ -174,15 +173,79 @@ export default function Market() {
 
   useEffect(() => {
     if (!input.trim()) {
-      if (page === 1) {
-        setApiSymbols([]);
-        setHasMore(true);
-      } else {
-        loadApiSymbols(marketFilter, page);
-      }
+      loadApiSymbols(marketFilter, page);
     }
   }, [marketFilter, page, input, loadApiSymbols]);
 
+  useEffect(() => {
+    if (input.trim().length <= 1) {
+      setSearchResults([]);
+      return;
+    }
+
+    if (marketFilter === "crypto") {
+      // RECHERCHE DANS LA LISTE LOCALE UNIQUEMENT
+      const term = input.toLowerCase().trim();
+      const filtered = CRYPTO_DATABASE.filter(item => 
+        item.symbol.toLowerCase().includes(term) || 
+        item.name.toLowerCase().includes(term)
+      );
+      setSearchResults(filtered);
+    } else {
+      const delay = setTimeout(async () => {
+        try {
+          const results = await fetch.get("/api/stock/search?term=" + input);
+          const all: any[] = results || [];
+          
+          const filtered = all.filter((item: any) => {
+            // Si on est dans l'onglet "all", on filtre les cryptos de l'API pour ne garder que ta liste
+            if (item.market === "crypto") {
+              const base = item.symbol.replace(/USD|USDT|EUR|GBP/, "");
+              return CRYPTO_SYMBOLS.includes(base);
+            }
+            if (marketFilter !== "all" && item.market !== marketFilter) return false;
+            return true;
+          });
+          setSearchResults(filtered);
+        } catch (err) {
+          console.error("Search Error:", err);
+        }
+      }, 600);
+      return () => clearTimeout(delay);
+    }
+  }, [input, fetch, marketFilter]);
+
+  const rawList = useMemo(() => {
+    if (input.trim().length > 1) return searchResults;
+    
+    if (marketFilter === "crypto") {
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        return CRYPTO_DATABASE.slice(start, start + ITEMS_PER_PAGE);
+    }
+
+    return page === 1 ? getPopularByFilter(marketFilter) : apiSymbols;
+  }, [input, searchResults, marketFilter, page, apiSymbols]);
+
+  const displayList = rawList
+    .filter((item: any) => {
+      const nameLower   = (item.name   || "").toLowerCase().trim();
+      const symbolLower = (item.symbol || "").toLowerCase().trim();
+
+      // Mots bannis (Comparaison exacte pour éviter de bloquer des noms valides)
+      const isBanned = BANNED_KEYWORDS.some(k => nameLower === k || symbolLower === k);
+      if (isBanned) return false;
+
+      // Warrants (Inclusion)
+      const isWarrant = nameLower.includes(t.noWarrants.toLowerCase());
+      if (isWarrant) return false;
+
+      return true;
+    })
+    .map((item: any) => ({
+      symbol: item.symbol,
+      name:   item.name,
+      market: item.market || (marketFilter === "crypto" ? "crypto" : "stocks"),
+    }));
   function handleFilterChange(key: string) {
     setMarketFilter(key);
     setPage(1);
@@ -191,53 +254,12 @@ export default function Market() {
     setApiSymbols([]);
   }
 
-  useEffect(() => {
-    const delay = setTimeout(async () => {
-      if (input.trim().length > 1) {
-        try {
-          const results = await fetch.get("/api/stock/search?term=" + input);
-          const all: any[] = results || [];
-          const filtered = marketFilter === "all"
-            ? all
-            : all.filter((item: any) => item.market === marketFilter);
-          setSearchResults(filtered);
-        } catch (err) {
-          console.error("Search Error:", err);
-        }
-      } else {
-        setSearchResults([]);
-      }
-    }, 600);
-    return () => clearTimeout(delay);
-  }, [input, fetch, marketFilter]);
-
-  const onChange     = (e: any) => setInput(e.target.value);
+  const onChange = (e: any) => setInput(e.target.value);
   const handleKeyDown = (e: any) => {
     if (e.key === "Escape") { setInput(""); setSearchResults([]); }
   };
 
   const isSearching = input.trim().length > 1;
-  const bannedKeywords = ["anti", "0xbtc", "0xbitcoin", "btcone", "bitcoinote", "bitcoin 2", "bitcoin 3", "bitcoin adult", "bitcoin air", "bether", "ethos", "ethplode", "kint", "beamx"];
-
-  const rawList = isSearching
-    ? searchResults
-    : page === 1
-      ? getPopularByFilter(marketFilter)
-      : apiSymbols;
-
-  const displayList = rawList
-    .filter((item: any) => {
-      const name   = (item.name   || "").toLowerCase();
-      const symbol = (item.symbol || "").toLowerCase();
-      const isBanned  = bannedKeywords.some(k => name.includes(k) || symbol.includes(k));
-      const isWarrant = name.includes(t.noWarrants.toLowerCase());
-      return !isBanned && !isWarrant;
-    })
-    .map((item: any) => ({
-      symbol: item.symbol,
-      name:   item.name,
-      market: item.market || (isSearching ? "stocks" : ""),
-    }));
 
   const filters = [
     { key: "all",    label: t.filterAll },
@@ -268,7 +290,6 @@ export default function Market() {
       </Head>
 
       <main className={homeStyles.pageContainer}>
-        {/* Header */}
         <div id="tour-market-info" className={homeStyles.marketHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
             <h1 className={homeStyles.marketTitle}>{t.title}</h1>
@@ -299,7 +320,6 @@ export default function Market() {
           </div>
         </div>
 
-        {/* Filtres portefeuille */}
         <div className={homeStyles.filterBar} style={{ marginBottom: '20px' }}>
           {wallets.map((_, index) => (
             <button
@@ -312,7 +332,6 @@ export default function Market() {
           ))}
         </div>
 
-        {/* Barre de recherche */}
         <div id="tour-market-search" className={marketStyles.searchInput} style={{ width: '100%', maxWidth: '600px', margin: '0 auto 20px' }}>
           <div style={{ borderRadius: '15px', border: '2px solid #f3ca3e', backgroundColor: 'white', display: 'flex', alignItems: 'center', padding: '0 15px', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -335,7 +354,6 @@ export default function Market() {
           </div>
         </div>
 
-        {/* Filtres marché */}
         <div id="tour-market-categories" style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '30px', flexWrap: 'wrap' }}>
           {filters.map((f) => (
             <button key={f.key} onClick={() => handleFilterChange(f.key)} style={btnStyle(marketFilter === f.key)}>
@@ -344,13 +362,6 @@ export default function Market() {
           ))}
         </div>
 
-        {/* Label page 1 */}
-        {!isSearching && page === 1 && (
-          <div style={{ textAlign: 'center', marginBottom: '12px', fontSize: '12px', color: '#aaa', fontWeight: '600', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          </div>
-        )}
-
-        {/* Tableau */}
         <div id="tour-market-list" className={homeStyles.assetCard} style={{ padding: '0', overflow: 'hidden', borderRadius: '15px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#aaa', fontSize: '14px' }}>
@@ -365,7 +376,6 @@ export default function Market() {
           )}
         </div>
 
-        {/* Pagination — cachée pendant une recherche */}
         {!isSearching && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '24px' }}>
             <button
