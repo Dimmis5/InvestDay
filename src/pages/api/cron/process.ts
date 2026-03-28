@@ -20,20 +20,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const report = [];
-
     const now = new Date();
-    const day = now.getUTCDay(); 
-    const hour = now.getUTCHours();
+
     const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
     const nyDay = nyTime.getDay();
-    const nyHour = nyTime.getHours();
-    const nyMin = nyTime.getMinutes();
-    const nyTotalMin = nyHour * 60 + nyMin;
-    const isNYSEOpenManual = nyDay >= 1 && nyDay <= 5 && nyTotalMin >= 570 && nyTotalMin < 960;
+    const nyTotalMin = nyTime.getHours() * 60 + nyTime.getMinutes();
+    const isUSOpen = nyDay >= 1 && nyDay <= 5 && nyTotalMin >= 570 && nyTotalMin < 960; 
 
-    const isForexOpen = !(day === 6 || (day === 5 && hour >= 22) || (day === 0 && hour < 22));
+    const frTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+    const frDay = frTime.getDay();
+    const frTotalMin = frTime.getHours() * 60 + frTime.getMinutes();
+    const isFranceOpen = frDay >= 1 && frDay <= 5 && frTotalMin >= 540 && frTotalMin < 1050; 
+
+    const utcDay = now.getUTCDay();
+    const utcHour = now.getUTCHours();
+    const isForexOpen = !(utcDay === 6 || (utcDay === 5 && utcHour >= 22) || (utcDay === 0 && utcHour < 22));
 
     for (const order of pendingOrders) {
+
       const summary: any = await stockService.getLastPrice(order.symbol, 0, "127.0.0.1");
       const stock = summary?.results?.[0];
 
@@ -43,30 +47,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const symbolUpper = order.symbol.toUpperCase();
-      const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
       
-      const isForex = forexPairs.includes(symbolUpper) || order.symbol.includes('/');
-      const isCrypto = !isForex && (
-  symbolUpper.endsWith("USDT") ||
-  symbolUpper.endsWith("BTC") ||
-  symbolUpper.endsWith("ETH") ||
-  (symbolUpper.endsWith("USD") && symbolUpper.length > 6)
-);
+      let shouldExecute = false;
 
-const isStockOpen = isNYSEOpenManual;
-      
-      const shouldExecute = 
-        isCrypto || 
-        (isForex && isForexOpen) || 
-        (!isCrypto && !isForex && isStockOpen);
+      if (symbolUpper.endsWith(".PA")) {
+        shouldExecute = isFranceOpen;
+      } 
+      else if (symbolUpper.includes('/') || symbolUpper.length === 6 && !symbolUpper.endsWith("USD")) {
+        shouldExecute = isForexOpen;
+      }
+      else if (symbolUpper.endsWith("USD") || symbolUpper.endsWith("USDT")) {
+        shouldExecute = true;
+      }
+      else {
+        shouldExecute = isUSOpen;
+      }
 
       if (shouldExecute) {
         const executionPrice = Number(stock.price);
+        
         await transactionsService.executeTransaction(order, executionPrice);
         
         report.push({ symbol: order.symbol, status: "SUCCESS", price: executionPrice });
       } else {
-        report.push({ symbol: order.symbol, status: "STILL_PENDING", reason: "Market closed" });
+        report.push({ symbol: order.symbol, status: "STILL_PENDING", reason: "Market still closed" });
       }
     }
 

@@ -70,32 +70,35 @@ export default function DetailAction(req: Request) {
     en: { cashLabel: "Available (P.", buyBtn: "Buy", popTitle: "Buy", popSub: "Purchase of", loading: "Loading chart...", noData: "No data available", line: "Line", candle: "Candlestick" }
   };
   const t = translations[lang as keyof typeof translations] || translations.fr;
-  const chartData = useMemo(() => {
-    let results = data?.results ? [...data.results] : [];
+const chartData = useMemo(() => {
+  const results = data?.results || [];
+  if (results.length === 0 && detail?.price) {
+    const now = Date.now();
+    const fallback = [
+      [now - 3600000, detail.price],
+      [now, detail.price]
+    ];
+    return { line: fallback, candle: fallback.map(p => [p[0], p[1], p[1], p[1], p[1]]) };
+  }
 
-    if (results.length === 0 && detail?.price) {
-      const now = Date.now();
-      results = [
-        { t: now - 3600000, c: detail.price, o: detail.price, h: detail.price, l: detail.price },
-        { t: now, c: detail.price, o: detail.price, h: detail.price, l: detail.price }
-      ];
-    } else if (results.length > 0 && detail?.price) {
-        const lastPointTime = Number(results[results.length - 1].t);
-        if (Date.now() > lastPointTime) {
-            results.push({ t: Date.now(), c: detail.price, o: detail.price, h: detail.price, l: detail.price });
-        }
-    }
+  const line = results.map((i: any) => [Number(i.t), i.c]);
+  const candle = results.map((i: any) => [
+    Number(i.t), 
+    i.o ?? i.c, 
+    i.h ?? i.c, 
+    i.l ?? i.c, 
+    i.c
+  ]);
 
-    const line = results.map((i: any) => [Number(i.t), i.c]);
-    const candle = results.map((i: any) => [Number(i.t), i.o ?? i.c, i.h ?? i.c, i.l ?? i.c, i.c]);
-    return { line, candle };
-  }, [data, detail?.price]);
+  return { line, candle };
+}, [data, detail?.price]);
 
   async function fetchDetail(symbol: string) {
     try {
       const response = await fetch.get("/api/stock/detail?symbol=" + symbol);
       const price = await getPrice(symbol);
       const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);
+
       
       const symbolUpper = symbol.toUpperCase();
       const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
@@ -122,25 +125,25 @@ export default function DetailAction(req: Request) {
     }
   }
 
-  async function fetchData(symbol: string) {
-    setLoadingChart(true);
-    try {
-      const m = (market as string) || "stocks";
-      const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
-      setData(res || { results: [] });
-    } catch (e) {
-      setData({ results: [] });
-    } finally {
-      setLoadingChart(false);
-    }
+async function fetchData(symbol: string, marketParam?: string) {
+  setLoadingChart(true);
+  try {
+    const m = marketParam || "stocks";
+    const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
+    console.log("fetchData response:", JSON.stringify(res));  // ← ajoutez ça
+    setData(res || { results: [] });
+  } catch (e) {
+    setData({ results: [] });
+  } finally {
+    setLoadingChart(false);
   }
-
-  useEffect(() => {
-    if (router.isReady && nameAction) {
-      fetchData(nameAction as string);
-      fetchDetail(nameAction as string);
-    }
-  }, [router.isReady, nameAction]);
+}
+useEffect(() => {
+  if (router.isReady && nameAction) {
+    fetchData(nameAction as string, market as string);
+    fetchDetail(nameAction as string);
+  }
+}, [router.isReady, nameAction, market]);
 
 
 useEffect(() => {
@@ -177,7 +180,10 @@ useEffect(() => {
     yAxis: { 
         labels: { style: { color: '#888' }, format: '{value}$' }, 
         opposite: true, 
-        gridLineColor: '#f5f5f5' 
+        gridLineColor: '#f5f5f5',
+            startOnTick: false,
+    endOnTick: false,
+    threshold: null //
     },
     navigator: { 
         enabled: true, 
