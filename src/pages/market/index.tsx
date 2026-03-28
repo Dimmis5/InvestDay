@@ -10,6 +10,7 @@ import marketStyles from "../../styles/Market.module.css";
 import TableSearch from "../../components/TableSearch.component.jsx";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 
+// --- CONFIGURATION ---
 
 const ITEMS_PER_PAGE = 20;
 
@@ -19,15 +20,13 @@ const MARKET_TO_TYPE: Record<string, string> = {
   forex:  "forex",
 };
 
-const BANNED_KEYWORDS = ["anti", "0xbtc", "0xbitcoin", "btcone", "bitcoinote", "bitcoin 2", "bitcoin 3", "bitcoin adult", "bitcoin air", "bether", "ethos", "ethplode", "kint", "beamx", "hyper", "hyper pay", "voltusd", "fetusdc", "mxceur"];
-
 const CRYPTO_SYMBOLS = [
-  "BTC", "ETH", "USDT", "BNB", "SOL", "XRP", "USDC", "ADA", "DOGE", "AVAX", "SHIB", "DOT", "LINK", "TRX", "MATIC", "WBTC", "NEAR", "UNI", "LTC", "DAI", "BCH", "PEPE", "LEO", "ICP", "APT", "ETC", "RENDER", "STX", "FIL", "MNT", "ARB", "IMX", "KAS", "VET", "OP", "MKR", "GRT", "LDO", "INJ", "RUNE", "OKB", "THETA", "FTM", "BGB", "FET", "JUP", "BEAM", "CORE", "PYTH", "FLOKI", "BONK", "ONDO", "SEI", "GALA", "WIF", "PENDLE", "AR", "TIA", "HBAR", "ATOM", "W", "AAVE", "ALGO", "QNT", "FLOW", "SNX", "EGLD", "SAND", "MANA", "AXS", "EOS", "NEO", "IOTA", "BSV", "XLM", "XMR", "ZEC", "DASH", "BTG", "CHZ", "HOT", "ENJ", "ZIL", "BAT", "ANKR", "RVN", "KAVA", "LRC", "KNC", "CRV", "1INCH", "SUSHI", "YFI", "COMP", "BAL", "UMA", "DYDX", "WOO", "GMX", "RPL", "SSV", "LPT", "ENS", "GLMR", "MOVR", "MINA", "ROSE", "CELO", "METIS", "TWT", "STRK", "ZETA", "MANTA", "ALT", "SATS", "ORDI", "BOME", "MEME", "BLUR", "XAI", "MAGIC", "GNS", "JOE", "WELL", "FLUX", "AKT", "NOS", "PRIME", "TRAC", "PAXG", "XDC", "BTT", "VTHO", "BICO", "IOTX", "SCRT", "CKB", "CEL", "TEL", "ONE", "WIN", "SKL", "GAL", "GMT", "APE", "ARKM", "ID", "MAV", "EDU", "HOOK", "POLYX", "RIF", "STG", "RDNT", "HFT", "LQTY", "GTC", "OCEAN", "AGIX", "POL", "KDA", "JASMY", "RNDR", "HYPE"
+  "BTC", "ETH", "USDT", "BNB", "SOL", "XRP", "USDC", "ADA", "DOGE", "AVAX", "SHIB","TAO", "DOT", "LINK", "TRX","CRO","TON","WLFI", "MATIC", "WBTC", "NEAR", "UNI", "LTC", "DAI", "BCH", "PEPE","SUI", "ICP", "APT", "ETC", "RENDER", "STX", "FIL", "ARB", "IMX", "VET", "OP", "MKR", "GRT", "LDO", "INJ", "RUNE","ASTER","SKY", "THETA","MORPHO","WLD", "FTM", "FET", "JUP", "BEAM", "CORE", "PYTH", "FLOKI", "BONK", "ONDO", "SEI", "GALA", "WIF", "PENDLE", "AR", "TIA", "HBAR", "ATOM", "W", "AAVE", "ALGO", "QNT", "FLOW", "SNX", "EGLD", "SAND", "MANA", "AXS", "EOS", "NEO", "IOTA", "BSV", "XLM", "XMR", "ZEC", "DASH", "BTG", "CHZ", "HOT", "ENJ", "ZIL", "BAT", "ANKR", "RVN", "KAVA", "LRC", "KNC", "CRV", "1INCH", "SUSHI", "YFI", "COMP", "BAL", "UMA", "DYDX", "WOO", "GMX", "RPL", "SSV", "LPT", "ENS", "GLMR", "MOVR", "MINA", "ROSE", "CELO", "METIS", "TWT", "STRK", "ZETA", "MANTA", "ALT", "SATS", "ORDI", "BOME", "MEME", "BLUR", "XAI", "MAGIC", "GNS", "JOE", "WELL", "FLUX", "AKT", "NOS", "PRIME", "TRAC", "PAXG", "BTT", "VTHO", "BICO", "IOTX", "SCRT", "CKB", "CEL", "TEL", "ONE", "WIN", "SKL", "GAL", "GMT", "APE", "ARKM", "ID", "MAV", "EDU", "HOOK", "POLYX", "RIF", "STG", "RDNT", "HFT", "LQTY", "GTC", "OCEAN", "AGIX", "POL", "KDA", "JASMY", "RNDR", "ENA","ZRO","DEXE","PUMP","JST","CAKE","VIRTUAL","PENGU","DASH","XTZ","SEI","DCR","KITE","GNO"
 ];
 
 const CRYPTO_DATABASE = CRYPTO_SYMBOLS.map(symbol => ({
   symbol: `${symbol}USD`,
-  name: symbol,
+  name: symbol === "HYPE" ? "Hyperliquid" : symbol,
   market: "crypto"
 }));
 
@@ -97,40 +96,40 @@ export default function Market() {
 
   const translations = {
     fr: {
-      headTitle:      "Invest Days - Marchés",
-      title:          "Marchés",
-      sub:            "Recherchez et analysez les actions en temps réel via Finage",
-      cashLabel:      "Disponible",
+      headTitle: "Invest Days - Marchés",
+      title: "Marchés",
+      sub: "Recherchez et analysez les actions en temps réel via Finage",
+      cashLabel: "Disponible",
       portfolioLabel: "Portefeuille n°",
-      placeholder:    "Tapez le nom d'une entreprise...",
-      noWarrants:     "warrant",
-      filterAll:      "Tous",
-      filterStocks:   "Actions",
-      filterCrypto:   "Crypto",
-      filterForex:    "Forex",
-      prev:           "← Précédent",
-      next:           "Suivant →",
-      pageLabel:      "Page",
-      loading:        "Chargement...",
-      noResults:      "Aucun résultat",
+      placeholder: "Tapez le nom d'une entreprise...",
+      noWarrants: "warrant",
+      filterAll: "Tous",
+      filterStocks: "Actions",
+      filterCrypto: "Crypto",
+      filterForex: "Forex",
+      prev: "← Précédent",
+      next: "Suivant →",
+      pageLabel: "Page",
+      loading: "Chargement...",
+      noResults: "Aucun résultat",
     },
     en: {
-      headTitle:      "Invest Days - Markets",
-      title:          "Markets",
-      sub:            "Search and analyze stocks in real-time via Finage",
-      cashLabel:      "Available",
+      headTitle: "Invest Days - Markets",
+      title: "Markets",
+      sub: "Search and analyze stocks in real-time via Finage",
+      cashLabel: "Available",
       portfolioLabel: "Wallet #",
-      placeholder:    "Type a company name...",
-      noWarrants:     "warrant",
-      filterAll:      "All",
-      filterStocks:   "Stocks",
-      filterCrypto:   "Crypto",
-      filterForex:    "Forex",
-      prev:           "← Previous",
-      next:           "Next →",
-      pageLabel:      "Page",
-      loading:        "Loading...",
-      noResults:      "No results",
+      placeholder: "Type a company name...",
+      noWarrants: "warrant",
+      filterAll: "All",
+      filterStocks: "Stocks",
+      filterCrypto: "Crypto",
+      filterForex: "Forex",
+      prev: "← Previous",
+      next: "Next →",
+      pageLabel: "Page",
+      loading: "Loading...",
+      noResults: "No results",
     }
   };
 
@@ -177,14 +176,14 @@ export default function Market() {
     }
   }, [marketFilter, page, input, loadApiSymbols]);
 
-  useEffect(() => {
+  // --- LOGIQUE DE RECHERCHE MISE À JOUR ---
+useEffect(() => {
     if (input.trim().length <= 1) {
       setSearchResults([]);
       return;
     }
 
     if (marketFilter === "crypto") {
-      // RECHERCHE DANS LA LISTE LOCALE UNIQUEMENT
       const term = input.toLowerCase().trim();
       const filtered = CRYPTO_DATABASE.filter(item => 
         item.symbol.toLowerCase().includes(term) || 
@@ -197,16 +196,29 @@ export default function Market() {
           const results = await fetch.get("/api/stock/search?term=" + input);
           const all: any[] = results || [];
           
-          const filtered = all.filter((item: any) => {
-            // Si on est dans l'onglet "all", on filtre les cryptos de l'API pour ne garder que ta liste
-            if (item.market === "crypto") {
-              const base = item.symbol.replace(/USD|USDT|EUR|GBP/, "");
-              return CRYPTO_SYMBOLS.includes(base);
-            }
-            if (marketFilter !== "all" && item.market !== marketFilter) return false;
-            return true;
-          });
-          setSearchResults(filtered);
+          // 1. Filtrer ET Transformer les résultats
+          const formattedResults = all
+            .filter((item: any) => {
+              if (item.market === "crypto") {
+                const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
+                return CRYPTO_SYMBOLS.includes(base);
+              }
+              if (marketFilter !== "all" && item.market !== marketFilter) return false;
+              return true;
+            })
+            .map((item: any) => {
+              if (item.market === "crypto") {
+                const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
+                return {
+                  ...item,
+                  symbol: `${base}USD`, 
+                  name: base === "HYPE" ? "Hyperliquid" : base
+                };
+              }
+              return item;
+            });
+
+          setSearchResults(formattedResults);
         } catch (err) {
           console.error("Search Error:", err);
         }
@@ -231,11 +243,6 @@ export default function Market() {
       const nameLower   = (item.name   || "").toLowerCase().trim();
       const symbolLower = (item.symbol || "").toLowerCase().trim();
 
-      // Mots bannis (Comparaison exacte pour éviter de bloquer des noms valides)
-      const isBanned = BANNED_KEYWORDS.some(k => nameLower === k || symbolLower === k);
-      if (isBanned) return false;
-
-      // Warrants (Inclusion)
       const isWarrant = nameLower.includes(t.noWarrants.toLowerCase());
       if (isWarrant) return false;
 
@@ -246,6 +253,7 @@ export default function Market() {
       name:   item.name,
       market: item.market || (marketFilter === "crypto" ? "crypto" : "stocks"),
     }));
+
   function handleFilterChange(key: string) {
     setMarketFilter(key);
     setPage(1);
