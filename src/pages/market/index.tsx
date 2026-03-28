@@ -10,14 +10,14 @@ import marketStyles from "../../styles/Market.module.css";
 import TableSearch from "../../components/TableSearch.component.jsx";
 import DashBoardLayout from "../../components/layouts/DashBoard.layout";
 
-// --- CONFIGURATION ---
 
 const ITEMS_PER_PAGE = 20;
 
 const MARKET_TO_TYPE: Record<string, string> = {
-  stocks: "us-stock",
-  crypto: "crypto",
-  forex:  "forex",
+  stocks:  "us-stock",
+  france:  "fr-stock",
+  crypto:  "crypto",
+  forex:   "forex",
 };
 
 const CRYPTO_SYMBOLS = [
@@ -53,6 +53,66 @@ const POPULAR_STOCKS = [
   { symbol: "BABA",  name: "Alibaba Group",            market: "stocks" },
 ];
 
+const POPULAR_FRANCE = [
+  { symbol: "MC.PA",    name: "LVMH",                          market: "france" },
+  { symbol: "RMS.PA",   name: "Hermès International",          market: "france" },
+  { symbol: "TTE.PA",   name: "TotalEnergies",                 market: "france" },
+  { symbol: "OR.PA",    name: "L'Oréal",                       market: "france" },
+  { symbol: "SAN.PA",   name: "Sanofi",                        market: "france" },
+  { symbol: "AI.PA",    name: "Air Liquide",                   market: "france" },
+  { symbol: "SU.PA",    name: "Schneider Electric",            market: "france" },
+  { symbol: "AIR.PA",   name: "Airbus",                        market: "france" },
+  { symbol: "BNP.PA",   name: "BNP Paribas",                  market: "france" },
+  { symbol: "DSY.PA",   name: "Dassault Systèmes",             market: "france" },
+  { symbol: "KER.PA",   name: "Kering",                        market: "france" },
+  { symbol: "CS.PA",    name: "AXA",                           market: "france" },
+  { symbol: "SAF.PA",   name: "Safran",                        market: "france" },
+  { symbol: "DG.PA",    name: "Vinci",                         market: "france" },
+  { symbol: "CAP.PA",   name: "Capgemini",                     market: "france" },
+  { symbol: "RI.PA",    name: "Pernod Ricard",                 market: "france" },
+  { symbol: "ACA.PA",   name: "Crédit Agricole",               market: "france" },
+  { symbol: "SGO.PA",   name: "Saint-Gobain",                  market: "france" },
+  { symbol: "GLE.PA",   name: "Société Générale",              market: "france" },
+  { symbol: "ORA.PA",   name: "Orange",                        market: "france" },
+  { symbol: "VIE.PA",   name: "Veolia",                        market: "france" },
+  { symbol: "LR.PA",    name: "Legrand",                       market: "france" },
+  { symbol: "EL.PA",    name: "EssilorLuxottica",              market: "france" },
+  { symbol: "STM.PA",   name: "STMicroelectronics",            market: "france" },
+  { symbol: "ML.PA",    name: "Michelin",                      market: "france" },
+  { symbol: "PUB.PA",   name: "Publicis Groupe",               market: "france" },
+  { symbol: "RNO.PA",   name: "Renault",                       market: "france" },
+  { symbol: "AC.PA",    name: "Accor",                         market: "france" },
+  { symbol: "ENGI.PA",  name: "Engie",                         market: "france" },
+  { symbol: "HO.PA",    name: "Thales",                        market: "france" },
+  { symbol: "AF.PA",    name: "Air France-KLM",                market: "france" },
+  { symbol: "BN.PA",    name: "Danone",                        market: "france" },
+  { symbol: "TCH.PA",   name: "Teleperformance",               market: "france" },
+  { symbol: "ALO.PA",   name: "Alstom",                        market: "france" },
+  { symbol: "WLN.PA",   name: "Worldline",                     market: "france" },
+  { symbol: "SW.PA",    name: "Sodexo",                        market: "france" },
+  { symbol: "ATO.PA",   name: "Atos",                          market: "france" },
+  { symbol: "AMUN.PA",  name: "Amundi",                        market: "france" },
+  { symbol: "SPIE.PA",  name: "Spie",                          market: "france" },
+  { symbol: "RCO.PA",   name: "Rexel",                         market: "france" },
+  { symbol: "GTT.PA",   name: "GTT",                           market: "france" },
+  { symbol: "SMCP.PA",  name: "SMCP",                          market: "france" },
+  { symbol: "UBI.PA",   name: "Ubisoft",                       market: "france" },
+  { symbol: "COFA.PA",  name: "Coface",                        market: "france" },
+  { symbol: "NXI.PA",   name: "Nexans",                        market: "france" },
+  { symbol: "MERY.PA",  name: "Mersen",                        market: "france" },
+  { symbol: "ERA.PA",   name: "Eramet",                        market: "france" },
+  { symbol: "FNAC.PA",  name: "Fnac Darty",                    market: "france" },
+  { symbol: "SFTW.PA",  name: "Soitec",                        market: "france" },
+  { symbol: "TKTT.PA",  name: "Tikehau Capital",               market: "france" },
+  { symbol: "VCT.PA",   name: "Vicat",                         market: "france" },
+  { symbol: "VIRP.PA",  name: "Virbac",                        market: "france" },
+  { symbol: "XFAB.PA",  name: "X-Fab Silicon Foundries",       market: "france" },
+  { symbol: "ABCA.PA",  name: "ABC Arbitrage",                  market: "france" },
+  { symbol: "VLA.PA",   name: "Vilmorin & Cie",                market: "france" },
+  { symbol: "TAVI.PA",  name: "Tarkett",                       market: "france" },
+  { symbol: "DBV.PA",   name: "DBV Technologies",              market: "france" },
+];
+
 const POPULAR_FOREX = [
   { symbol: "EURUSD", name: "Euro / US Dollar",             market: "forex" },
   { symbol: "GBPUSD", name: "British Pound / US Dollar",    market: "forex" },
@@ -67,17 +127,19 @@ const POPULAR_FOREX = [
 ];
 
 const POPULAR_ALL = [
-  ...POPULAR_STOCKS.slice(0, 8),
+  ...POPULAR_STOCKS.slice(0, 6),
+  ...POPULAR_FRANCE.slice(0, 4),
   ...CRYPTO_DATABASE.slice(0, 6),
-  ...POPULAR_FOREX.slice(0, 6),
+  ...POPULAR_FOREX.slice(0, 4),
 ];
 
 function getPopularByFilter(filter: string) {
   switch (filter) {
-    case "stocks": return POPULAR_STOCKS;
-    case "crypto": return CRYPTO_DATABASE.slice(0, ITEMS_PER_PAGE);
-    case "forex":  return POPULAR_FOREX;
-    default:       return POPULAR_ALL;
+    case "stocks":  return POPULAR_STOCKS;
+    case "france":  return POPULAR_FRANCE;
+    case "crypto":  return CRYPTO_DATABASE.slice(0, ITEMS_PER_PAGE);
+    case "forex":   return POPULAR_FOREX;
+    default:        return POPULAR_ALL;
   }
 }
 
@@ -96,40 +158,42 @@ export default function Market() {
 
   const translations = {
     fr: {
-      headTitle: "Invest Days - Marchés",
-      title: "Marchés",
-      sub: "Recherchez et analysez les actions en temps réel via Finage",
-      cashLabel: "Disponible",
+      headTitle:      "Invest Days - Marchés",
+      title:          "Marchés",
+      sub:            "Recherchez et analysez les actions en temps réel via Finage",
+      cashLabel:      "Disponible",
       portfolioLabel: "Portefeuille n°",
-      placeholder: "Tapez le nom d'une entreprise...",
-      noWarrants: "warrant",
-      filterAll: "Tous",
-      filterStocks: "Actions",
-      filterCrypto: "Crypto",
-      filterForex: "Forex",
-      prev: "← Précédent",
-      next: "Suivant →",
-      pageLabel: "Page",
-      loading: "Chargement...",
-      noResults: "Aucun résultat",
+      placeholder:    "Tapez le nom d'une entreprise...",
+      noWarrants:     "warrant",
+      filterAll:      "Tous",
+      filterStocks:   "Actions US",
+      filterFrance:   "France",
+      filterCrypto:   "Crypto",
+      filterForex:    "Forex",
+      prev:           "← Précédent",
+      next:           "Suivant →",
+      pageLabel:      "Page",
+      loading:        "Chargement...",
+      noResults:      "Aucun résultat",
     },
     en: {
-      headTitle: "Invest Days - Markets",
-      title: "Markets",
-      sub: "Search and analyze stocks in real-time via Finage",
-      cashLabel: "Available",
+      headTitle:      "Invest Days - Markets",
+      title:          "Markets",
+      sub:            "Search and analyze stocks in real-time via Finage",
+      cashLabel:      "Available",
       portfolioLabel: "Wallet #",
-      placeholder: "Type a company name...",
-      noWarrants: "warrant",
-      filterAll: "All",
-      filterStocks: "Stocks",
-      filterCrypto: "Crypto",
-      filterForex: "Forex",
-      prev: "← Previous",
-      next: "Next →",
-      pageLabel: "Page",
-      loading: "Loading...",
-      noResults: "No results",
+      placeholder:    "Type a company name...",
+      noWarrants:     "warrant",
+      filterAll:      "All",
+      filterStocks:   "US Stocks",
+      filterFrance:   "France",
+      filterCrypto:   "Crypto",
+      filterForex:    "Forex",
+      prev:           "← Previous",
+      next:           "Next →",
+      pageLabel:      "Page",
+      loading:        "Loading...",
+      noResults:      "No results",
     }
   };
 
@@ -138,6 +202,10 @@ export default function Market() {
   const loadApiSymbols = useCallback(async (filter: string, p: number) => {
     if (filter === "crypto") {
       setHasMore(p * ITEMS_PER_PAGE < CRYPTO_DATABASE.length);
+      return;
+    }
+    if (filter === "france") {
+      setHasMore(p * ITEMS_PER_PAGE < POPULAR_FRANCE.length);
       return;
     }
 
@@ -176,83 +244,112 @@ export default function Market() {
     }
   }, [marketFilter, page, input, loadApiSymbols]);
 
-  // --- LOGIQUE DE RECHERCHE MISE À JOUR ---
-useEffect(() => {
+  useEffect(() => {
     if (input.trim().length <= 1) {
       setSearchResults([]);
       return;
     }
 
-    if (marketFilter === "crypto") {
-      const term = input.toLowerCase().trim();
-      const filtered = CRYPTO_DATABASE.filter(item => 
-        item.symbol.toLowerCase().includes(term) || 
-        item.name.toLowerCase().includes(term)
-      );
-      setSearchResults(filtered);
-    } else {
-      const delay = setTimeout(async () => {
-        try {
-          const results = await fetch.get("/api/stock/search?term=" + input);
-          const all: any[] = results || [];
-          
-          // 1. Filtrer ET Transformer les résultats
-          const formattedResults = all
-            .filter((item: any) => {
-              if (item.market === "crypto") {
-                const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
-                return CRYPTO_SYMBOLS.includes(base);
-              }
-              if (marketFilter !== "all" && item.market !== marketFilter) return false;
-              return true;
-            })
-            .map((item: any) => {
-              if (item.market === "crypto") {
-                const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
-                return {
-                  ...item,
-                  symbol: `${base}USD`, 
-                  name: base === "HYPE" ? "Hyperliquid" : base
-                };
-              }
-              return item;
-            });
+    const delay = setTimeout(async () => {
+      try {
+        const term = input.toLowerCase().trim();
+        let localMatches: any[] = [];
 
-          setSearchResults(formattedResults);
-        } catch (err) {
-          console.error("Search Error:", err);
+        if (marketFilter === "all" || marketFilter === "france") {
+          const fr = POPULAR_FRANCE.filter(item => 
+            item.symbol.toLowerCase().includes(term) || 
+            item.name.toLowerCase().includes(term)
+          );
+          localMatches = [...localMatches, ...fr];
         }
-      }, 600);
-      return () => clearTimeout(delay);
-    }
+
+        if (marketFilter === "all" || marketFilter === "crypto") {
+          const crypto = CRYPTO_DATABASE.filter(item =>
+            item.symbol.toLowerCase().includes(term) ||
+            item.name.toLowerCase().includes(term)
+          );
+          localMatches = [...localMatches, ...crypto];
+        }
+
+        if (marketFilter === "all" || marketFilter === "forex") {
+          const forex = POPULAR_FOREX.filter(item =>
+            item.symbol.toLowerCase().includes(term) ||
+            item.name.toLowerCase().includes(term)
+          );
+          localMatches = [...localMatches, ...forex];
+        }
+
+        const results = await fetch.get("/api/stock/search?term=" + input);
+        const apiAll: any[] = results || [];
+
+        const formattedApi = apiAll
+          .filter((item: any) => {
+            if (item.market === "crypto") {
+              const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
+              return CRYPTO_SYMBOLS.includes(base);
+            }
+            if (marketFilter !== "all" && item.market !== marketFilter) {
+               if (marketFilter === "stocks" && item.symbol?.toUpperCase().endsWith(".PA")) return false;
+               if (item.market !== marketFilter) return false;
+            }
+            return true;
+          })
+          .map((item: any) => {
+
+            if (item.market === "crypto") {
+              const base = item.symbol.toUpperCase().replace(/USD|USDT|EUR|GBP/, "");
+              return { ...item, symbol: `${base}USD`, name: base === "HYPE" ? "Hyperliquid" : base };
+            }
+            return item;
+          });
+
+        const finalResults = [...localMatches];
+        formattedApi.forEach(apiItem => {
+          if (!finalResults.find(local => local.symbol.toUpperCase() === apiItem.symbol.toUpperCase())) {
+            finalResults.push(apiItem);
+          }
+        });
+
+        setSearchResults(finalResults);
+      } catch (err) {
+        console.error("Search Error:", err);
+      }
+    }, 600);
+    return () => clearTimeout(delay);
   }, [input, fetch, marketFilter]);
 
   const rawList = useMemo(() => {
     if (input.trim().length > 1) return searchResults;
-    
+
     if (marketFilter === "crypto") {
-        const start = (page - 1) * ITEMS_PER_PAGE;
-        return CRYPTO_DATABASE.slice(start, start + ITEMS_PER_PAGE);
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      return CRYPTO_DATABASE.slice(start, start + ITEMS_PER_PAGE);
+    }
+
+    if (marketFilter === "france") {
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      return POPULAR_FRANCE.slice(start, start + ITEMS_PER_PAGE);
     }
 
     return page === 1 ? getPopularByFilter(marketFilter) : apiSymbols;
   }, [input, searchResults, marketFilter, page, apiSymbols]);
 
-  const displayList = rawList
+const displayList = rawList
     .filter((item: any) => {
-      const nameLower   = (item.name   || "").toLowerCase().trim();
-      const symbolLower = (item.symbol || "").toLowerCase().trim();
-
-      const isWarrant = nameLower.includes(t.noWarrants.toLowerCase());
-      if (isWarrant) return false;
-
+      const nameLower = (item.name || "").toLowerCase().trim();
+      if (nameLower.includes(t.noWarrants.toLowerCase())) return false;
       return true;
     })
-    .map((item: any) => ({
-      symbol: item.symbol,
-      name:   item.name,
-      market: item.market || (marketFilter === "crypto" ? "crypto" : "stocks"),
-    }));
+    .map((item: any) => {
+      const rawMarket = item.market || (marketFilter === "crypto" ? "crypto" : marketFilter === "france" ? "france" : "stocks");
+      const displayMarket = (rawMarket === "france" || rawMarket === "stocks") ? "Action" : rawMarket;
+
+      return {
+        symbol: item.symbol,
+        name:   item.name || item.description || `Action ${item.symbol}`, 
+        market: displayMarket,
+      };
+    });
 
   function handleFilterChange(key: string) {
     setMarketFilter(key);
@@ -272,6 +369,7 @@ useEffect(() => {
   const filters = [
     { key: "all",    label: t.filterAll },
     { key: "stocks", label: t.filterStocks },
+    { key: "france", label: t.filterFrance },
     { key: "crypto", label: t.filterCrypto },
     { key: "forex",  label: t.filterForex },
   ];
@@ -308,6 +406,7 @@ useEffect(() => {
             <div className={marketStyles.marketStatusContainer}>
               {[
                 { label: t.filterStocks, info: lang === 'fr' ? '14h30 – 21h00' : '2:30 PM – 9:00 PM' },
+                { label: t.filterFrance, info: lang === 'fr' ? '09h00 – 17h30' : '9:00 AM – 5:30 PM' },
                 { label: t.filterForex,  info: lang === 'fr' ? 'Lun – Ven'     : 'Mon – Fri' },
                 { label: t.filterCrypto, info: '24/7' },
               ].map(({ label, info }) => (

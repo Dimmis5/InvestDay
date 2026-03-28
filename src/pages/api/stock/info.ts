@@ -40,13 +40,15 @@ async function info(req: Request, res: NextApiResponse<any>) {
   // Appel au service mis à jour
   // Note : j'ai supprimé le paramètre "false" (le boolean _un) car il a été retiré 
   // dans la nouvelle signature du service pour simplifier.
-  const resp = await stocksService.getRecentPrices(
-    symbol.toUpperCase(),
-    selectedRange,
-    req.auth.sub,
-    clientIp as string,
-    (market as string) || "stocks"
-  );
+// APRÈS
+const marketHint = market === "france" ? "stock_fr" : (market as string) || "stocks";
 
+const resp = await stocksService.getRecentPrices(
+  symbol.toUpperCase(),
+  selectedRange,
+  req.auth.sub,
+  clientIp as string,
+  marketHint
+);
   return res.status(200).json(resp);
 }

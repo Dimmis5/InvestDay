@@ -11,7 +11,8 @@ async function lastPrice(req: Request, res: NextApiResponse<any>) {
     return res.status(405).json({ message: `Method ${req.method} not allowed` });
   }
 
-  const { symbol } = req.query;
+  const { symbol, market } = req.query;
+  const marketHint = market === "france" ? "stock_fr" : (market as string) || undefined;
   const clientIp = requestIp.getClientIp(req);
 
   if (typeof symbol !== "string") {
@@ -19,11 +20,12 @@ async function lastPrice(req: Request, res: NextApiResponse<any>) {
   }
 
   try {
-    const resp: any = await stocksService.getLastPrice(
-      symbol.toUpperCase(),
-      req.auth.sub,
-      clientIp as string
-    );
+const resp: any = await stocksService.getLastPrice(
+  symbol.toUpperCase(),
+  req.auth.sub,
+  clientIp as string,
+  marketHint
+);
 
     const price = resp?.results?.[0]?.price;
 
