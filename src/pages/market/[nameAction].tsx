@@ -80,7 +80,7 @@ const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const fetch = useFetch();
   function startBuyCooldown() {
   setBuyCooldown(true);
-  setCooldownSeconds(15);
+  setCooldownSeconds(20);
   const interval = setInterval(() => {
     setCooldownSeconds(prev => {
       if (prev <= 1) {

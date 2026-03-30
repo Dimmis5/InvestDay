@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import TableTransactionStyles from "../styles/TableTransaction.module.css";
 import { useWallet } from "../context/WalletContext";
 import Popup from "./Popup.component";
-import { toast } from "react-toastify"; 
+import { toast } from "react-toastify";
+
 function TableWallet({ selectedId, activeWalletTransactions, lang }) {
   const [symbol, setSymbol] = useState("");
   const [maxCount, setMaxCount] = useState(0);
@@ -10,25 +11,10 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
   const [sellingSymbols, setSellingSymbols] = useState(new Set());
-  const { walletsLines, actualiseWalletsLines, valuesCached } = useWallet();
+  const [sellCooldown, setSellCooldown] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  const infoIconStyle = {
-    marginLeft: '8px',
-    cursor: 'pointer',
-    fontSize: '0.7rem',
-    color: '#3498db',
-    border: '1px solid #3498db',
-    borderRadius: '50%',
-    width: '16px',
-    height: '16px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    verticalAlign: 'middle',
-    fontWeight: 'bold',
-    backgroundColor: '#ebf5fb',
-    transition: 'transform 0.1s ease'
-  };
+  const { walletsLines, actualiseWalletsLines, valuesCached } = useWallet();
 
   const translations = {
     fr: {
@@ -62,14 +48,13 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
       h_var_dollar_info: "Price variation per share compared to the average buy price.",
       h_var_percent_info: "Percentage performance since purchase.",
       h_gain_info: "Total unrealized profit or loss (Var $ × Quantity).",
-    }
+    },
   };
 
   const t = translations[lang] || translations.fr;
 
-  // Fonction pour afficher l'explication au clic
   const showInfo = (e, text) => {
-    e.stopPropagation(); // Empêche le tri de la colonne lors du clic sur l'icône
+    e.stopPropagation();
     toast.info(text, {
       position: "bottom-right",
       autoClose: 4000,
@@ -89,12 +74,10 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
     if (value == null) return null;
 
     let quantityBuy = 0;
-    let averagePriceAtExecution = item.valueAtExecution.reduce(
-      (acc, item2) => {
-        quantityBuy += item2.quantity;
-        return acc + item2.quantity * item2.price;
-      }, 0
-    );
+    let averagePriceAtExecution = item.valueAtExecution.reduce((acc, item2) => {
+      quantityBuy += item2.quantity;
+      return acc + item2.quantity * item2.price;
+    }, 0);
     averagePriceAtExecution = averagePriceAtExecution / quantityBuy;
 
     const variation = value - averagePriceAtExecution;
@@ -124,31 +107,28 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
     return 0;
   });
 
-  const visibleLines = sortedLines.filter(item => !sellingSymbols.has(item.symbol));
-  const [sellCooldown, setSellCooldown] = useState(false);
-const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const visibleLines = sortedLines.filter((item) => !sellingSymbols.has(item.symbol));
 
   function handleSellConfirm(symbol, quantitySold, totalQuantity) {
     if (quantitySold >= totalQuantity) {
-      setSellingSymbols(prev => new Set(prev).add(symbol));
+      setSellingSymbols((prev) => new Set(prev).add(symbol));
     }
   }
-}
 
-function startSellCooldown() {
-  setSellCooldown(true);
-  setCooldownSeconds(15);
-  const interval = setInterval(() => {
-    setCooldownSeconds(prev => {
-      if (prev <= 1) {
-        clearInterval(interval);
-        setSellCooldown(false);
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-}
+  function startSellCooldown() {
+    setSellCooldown(true);
+    setCooldownSeconds(20);
+    const interval = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setSellCooldown(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -160,8 +140,9 @@ function startSellCooldown() {
   }
 
   function SortIcon({ colKey }) {
-    if (sortKey !== colKey) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
-    return <span style={{ marginLeft: '4px' }}>{sortDir === "asc" ? "↑" : "↓"}</span>;
+    if (sortKey !== colKey)
+      return <span style={{ opacity: 0.3, marginLeft: "4px" }}>↕</span>;
+    return <span style={{ marginLeft: "4px" }}>{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
   const thStyle = {
@@ -187,46 +168,26 @@ function startSellCooldown() {
             <th className={TableTransactionStyles.th} style={thStyle} onClick={() => handleSort("value")}>
               {t.h_current}<SortIcon colKey="value" />
             </th>
-            
-            {/* Colonne Var $ */}
+
             <th className={TableTransactionStyles.th} style={thStyle} onClick={() => handleSort("variation")}>
               {t.h_var_dollar}
-              <span 
-                className={TableTransactionStyles.infoIcon} 
-                onClick={(e) => showInfo(e, t.h_var_dollar_info)}
-              >
-                i
-              </span>
+              <span className={TableTransactionStyles.infoIcon} onClick={(e) => showInfo(e, t.h_var_dollar_info)}>i</span>
               <SortIcon colKey="variation" />
             </th>
 
-            {/* Colonne Var % */}
             <th className={TableTransactionStyles.th} style={thStyle} onClick={() => handleSort("variationPercent")}>
               {t.h_var_percent}
-              <span 
-                className={TableTransactionStyles.infoIcon} 
-                onClick={(e) => showInfo(e, t.h_var_percent_info)}
-              >
-                i
-              </span>
+              <span className={TableTransactionStyles.infoIcon} onClick={(e) => showInfo(e, t.h_var_percent_info)}>i</span>
               <SortIcon colKey="variationPercent" />
             </th>
 
-            {/* Colonne Gain */}
             <th className={TableTransactionStyles.th} style={thStyle} onClick={() => handleSort("gain")}>
               {t.h_gain}
-              <span 
-                className={TableTransactionStyles.infoIcon} 
-                onClick={(e) => showInfo(e, t.h_gain_info)}
-              >
-                i
-              </span>
+              <span className={TableTransactionStyles.infoIcon} onClick={(e) => showInfo(e, t.h_gain_info)}>i</span>
               <SortIcon colKey="gain" />
             </th>
 
-            <th className={TableTransactionStyles.th}>
-              {t.h_action}
-            </th>
+            <th className={TableTransactionStyles.th}>{t.h_action}</th>
           </tr>
         </thead>
         <tbody>
@@ -234,7 +195,7 @@ function startSellCooldown() {
             const isPositive = item.variation >= 0;
             return (
               <tr key={index} className={TableTransactionStyles.tr}>
-                <td data-label={t.h_symbol} className={TableTransactionStyles.td} style={{ fontWeight: 'bold' }}>
+                <td data-label={t.h_symbol} className={TableTransactionStyles.td} style={{ fontWeight: "bold" }}>
                   {item.symbol}
                 </td>
                 <td data-label={t.h_quantity} className={TableTransactionStyles.td}>
@@ -246,30 +207,30 @@ function startSellCooldown() {
                 <td data-label={t.h_current} className={TableTransactionStyles.td}>
                   {item.value?.toFixed(2)} $
                 </td>
-                <td data-label={t.h_var_dollar} className={TableTransactionStyles.td} style={{ color: isPositive ? '#2ecc71' : '#e74c3c' }}>
-                  {isPositive ? '+' : ''}{item.variation.toFixed(2)} $
+                <td data-label={t.h_var_dollar} className={TableTransactionStyles.td} style={{ color: isPositive ? "#2ecc71" : "#e74c3c" }}>
+                  {isPositive ? "+" : ""}{item.variation.toFixed(2)} $
                 </td>
-                <td data-label={t.h_var_percent} className={TableTransactionStyles.td} style={{ color: isPositive ? '#2ecc71' : '#e74c3c' }}>
+                <td data-label={t.h_var_percent} className={TableTransactionStyles.td} style={{ color: isPositive ? "#2ecc71" : "#e74c3c" }}>
                   {item.variationPercent.toFixed(2)} %
                 </td>
-                <td data-label={t.h_gain} className={TableTransactionStyles.td} style={{ fontWeight: 'bold' }}>
+                <td data-label={t.h_gain} className={TableTransactionStyles.td} style={{ fontWeight: "bold" }}>
                   {item.gain.toFixed(2)} $
                 </td>
                 <td data-label={t.h_action} className={TableTransactionStyles.td}>
-<button
-  className={TableTransactionStyles.sellButton}
-  disabled={sellCooldown}
-  onClick={() => {
-    if (sellCooldown) return;
-    startSellCooldown();
-    setIsOpen(true);
-    setSymbol(item.symbol);
-    setMaxCount(item.quantity);
-  }}
-  style={sellCooldown ? { opacity: 0.5, cursor: "not-allowed" } : {}}
->
-  {sellCooldown ? `${t.btn_sell} (${cooldownSeconds}s)` : t.btn_sell}
-</button>
+                  <button
+                    className={TableTransactionStyles.sellButton}
+                    disabled={sellCooldown}
+                    onClick={() => {
+                      if (sellCooldown) return;
+                      startSellCooldown();
+                      setIsOpen(true);
+                      setSymbol(item.symbol);
+                      setMaxCount(item.quantity);
+                    }}
+                    style={sellCooldown ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                  >
+                    {sellCooldown ? `${t.btn_sell} (${cooldownSeconds}s)` : t.btn_sell}
+                  </button>
                 </td>
               </tr>
             );
