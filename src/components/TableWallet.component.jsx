@@ -84,20 +84,29 @@ function TableWallet({ selectedId, activeWalletTransactions, lang }) {
   });
 
   const visibleLines = sortedLines.filter(item => !sellingSymbols.has(item.symbol));
+  const [sellCooldown, setSellCooldown] = useState(false);
+const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
 function handleSellConfirm(symbol, quantitySold, totalQuantity) {
   if (quantitySold >= totalQuantity) {
     setSellingSymbols(prev => new Set(prev).add(symbol));
   }
 }
-  function handleSort(key) {
-    if (sortKey === key) {
-      setSortDir(sortDir === "asc" ? "desc" : "asc");
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  }
+
+function startSellCooldown() {
+  setSellCooldown(true);
+  setCooldownSeconds(15);
+  const interval = setInterval(() => {
+    setCooldownSeconds(prev => {
+      if (prev <= 1) {
+        clearInterval(interval);
+        setSellCooldown(false);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+}
 
   function SortIcon({ colKey }) {
     if (sortKey !== colKey) return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
@@ -168,16 +177,20 @@ function handleSellConfirm(symbol, quantitySold, totalQuantity) {
                   {item.gain.toFixed(2)} $
                 </td>
                 <td data-label={t.h_action} className={TableTransactionStyles.td}>
-                  <button
-                    className={TableTransactionStyles.sellButton}
-                    onClick={() => {
-                      setIsOpen(true);
-                      setSymbol(item.symbol);
-                      setMaxCount(item.quantity);
-                    }}
-                  >
-                    {t.btn_sell}
-                  </button>
+<button
+  className={TableTransactionStyles.sellButton}
+  disabled={sellCooldown}
+  onClick={() => {
+    if (sellCooldown) return;
+    startSellCooldown();
+    setIsOpen(true);
+    setSymbol(item.symbol);
+    setMaxCount(item.quantity);
+  }}
+  style={sellCooldown ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+>
+  {sellCooldown ? `${t.btn_sell} (${cooldownSeconds}s)` : t.btn_sell}
+</button>
                 </td>
               </tr>
             );

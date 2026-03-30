@@ -60,6 +60,7 @@ function getRangeMin(range: TimeRange): number | undefined {
   return map[range];
 }
 
+
 export default function DetailAction(req: Request) {
   const [data, setData] = useState<any>({ results: [] });
   const [isOpen, setIsOpen] = useState(false);
@@ -67,6 +68,8 @@ export default function DetailAction(req: Request) {
   const [chartType, setChartType] = useState<"line" | "candlestick">("line");
   const [range, setRange] = useState<TimeRange>("ALL");
   const [loadingChart, setLoadingChart] = useState(true);
+  const [buyCooldown, setBuyCooldown] = useState(false);
+const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -75,6 +78,21 @@ export default function DetailAction(req: Request) {
   const router = useRouter();
   const { nameAction, name, market } = router.query;
   const fetch = useFetch();
+  function startBuyCooldown() {
+  setBuyCooldown(true);
+  setCooldownSeconds(15);
+  const interval = setInterval(() => {
+    setCooldownSeconds(prev => {
+      if (prev <= 1) {
+        clearInterval(interval);
+        setBuyCooldown(false);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+}
+
 
   const translations = {
     fr: { cashLabel: "Disponible (P.", buyBtn: "Acheter", popTitle: "Acheter", popSub: "Achat de", loading: "Chargement du graphique...", noData: "Données indisponibles", line: "Courbe", candle: "Bougies" },
@@ -240,9 +258,17 @@ useEffect(() => {
                 <span style={{ fontWeight: '700', fontSize: '18px' }}>{(wallets[selectedId]?.cash || 0).toLocaleString()} $</span>
               </div>
             </div>
-            <button className={homeStyles.buyButton} style={{ width: '160px', opacity: detail?.price ? 1 : 0.5 }} onClick={() => detail?.price && setIsOpen(true)}>
-              {t.buyBtn}
-            </button>
+<button
+  className={homeStyles.buyButton}
+  style={{ width: '160px', opacity: (detail?.price && !buyCooldown) ? 1 : 0.5, cursor: buyCooldown ? 'not-allowed' : 'pointer' }}
+  onClick={() => {
+    if (!detail?.price || buyCooldown) return;
+    startBuyCooldown();
+    setIsOpen(true);
+  }}
+>
+  {buyCooldown ? `${t.buyBtn} (${cooldownSeconds}s)` : t.buyBtn}
+</button>
           </div>
         </div>
 
