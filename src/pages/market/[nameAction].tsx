@@ -149,12 +149,14 @@ async function fetchDetail(symbol: string) {
       finalStatus = lastMarketStatus || (isNYSEOpen() ? "open" : "closed");
     }
 
-    // Marché fermé → on ne met pas à jour le prix si on en a déjà un
-    setDetail((prev: any) => ({
-      ...response.results,
-      price: finalStatus === "closed" && prev?.price ? prev.price : (lastPrice || prev?.price || 0),
-      market_status: finalStatus,
-    }));
+    setDetail((prev: any) => {
+      const shouldKeepPrice = finalStatus === "closed" && prev?.price && prev.price > 0;
+      return {
+        ...response.results,
+        price: shouldKeepPrice ? prev.price : (lastPrice || prev?.price || 0),
+        market_status: finalStatus,
+      };
+    });
 
   } catch (e) {
     console.error("Erreur dans fetchDetail", e);
