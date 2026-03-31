@@ -128,7 +128,6 @@ async function fetchDetail(symbol: string) {
     const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);
 
     const lastPrice = lastPriceRes?.price || 0;
-    const lastMarketStatus = lastPriceRes?.market_status ?? "closed";
 
     const symbolUpper = symbol.toUpperCase();
     const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
@@ -144,9 +143,9 @@ async function fetchDetail(symbol: string) {
     } else if (isForex) {
       finalStatus = isForexOpen() ? "open" : "closed";
     } else if (isEuropean) {
-      finalStatus = lastMarketStatus || (isEuronextOpen() ? "open" : "closed");
+      finalStatus = isEuronextOpen() ? "open" : "closed";
     } else {
-      finalStatus = lastMarketStatus || (isNYSEOpen() ? "open" : "closed");
+      finalStatus = isNYSEOpen() ? "open" : "closed";
     }
 
     setDetail((prev: any) => {
