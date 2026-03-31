@@ -18,12 +18,12 @@ function Popup({
   const { wallets, selectedId, actualiseWalletsLines } = useWallet();
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [cooldown, setCooldown] = useState(0); // Temps restant en secondes
+  const [cooldown, setCooldown] = useState(0);
   const timerRef = useRef(null);
   const fetch = useFetch();
 
   const isCrypto = symbol?.toUpperCase().includes("USD") && !symbol?.toUpperCase().includes(".PA");
-  const precision = isCrypto ? 4 : 1; 
+  const precision = isCrypto ? 4 : 1;
   const step = isCrypto ? 0.001 : 1;
 
   const translations = {
@@ -54,11 +54,29 @@ function Popup({
   };
   const t = translations[lang] || translations.fr;
 
-  // Gestion du compte à rebours de 15s
+  // Lecture du localStorage dès que symbol est connu
+  useEffect(() => {
+    if (!symbol) return;
+    const savedEnd = localStorage.getItem(`cooldown_${symbol}`);
+    if (savedEnd) {
+      const remaining = Math.ceil((Number(savedEnd) - Date.now()) / 1000);
+      setCooldown(remaining > 0 ? remaining : 0);
+    } else {
+      setCooldown(0);
+    }
+  }, [symbol]);
+
+  // Gestion du compte à rebours
   useEffect(() => {
     if (cooldown > 0) {
       timerRef.current = setInterval(() => {
-        setCooldown((prev) => prev - 1);
+        setCooldown((prev) => {
+          if (prev <= 1) {
+            localStorage.removeItem(`cooldown_${symbol}`);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     } else {
       clearInterval(timerRef.current);
@@ -66,6 +84,7 @@ function Popup({
     return () => clearInterval(timerRef.current);
   }, [cooldown]);
 
+  // Reset à l'ouverture de la popup
   useEffect(() => {
     if (open) {
       setCount(0);
@@ -73,22 +92,27 @@ function Popup({
     }
   }, [open, symbol]);
 
+  const startCooldown = () => {
+    const endTime = Date.now() + 15000;
+    localStorage.setItem(`cooldown_${symbol}`, endTime.toString());
+    setCooldown(15);
+  };
+
   const increment = () => setCount(prev => Math.min(Number(prev) + step, maxCount).toFixed(precision));
   const decrement = () => setCount(prev => Math.max(Number(prev) - step, 0).toFixed(precision));
 
   const executeOrder = () => {
     const quantity = Number(count);
-    
-    // SÉCURITÉ : On bloque si : pas de quantité, déjà en cours, ou en cooldown
+
     if (quantity <= 0 || isLoading || cooldown > 0) return;
-    
+
     setIsLoading(true);
     const payload = {
       walletId: wallets[selectedId].id,
       symbol: symbol,
       amount: quantity.toFixed(precision),
       selling: sell ? "true" : "false",
-      status: isMarketOpen ? "EXECUTED" : "PENDING" 
+      status: isMarketOpen ? "EXECUTED" : "PENDING"
     };
 
     fetch.post("/api/transactions", payload)
@@ -96,17 +120,12 @@ function Popup({
         if (sell && onSellConfirm) onSellConfirm(symbol, quantity, maxCount);
         toast.success(isMarketOpen ? t.successOrder : t.successOrderPending);
         actualiseWalletsLines();
-        
-        // On lance le cooldown de 15 secondes après un succès
-        setCooldown(15); 
-        
-        // Optionnel : fermer la fenêtre après un délai pour que l'utilisateur voie le succès
+        startCooldown();
         setTimeout(() => close(), 1000);
       })
       .catch(() => {
         toast.error(t.errOrder);
-        // On lance aussi le cooldown en cas d'erreur pour éviter le spam d'erreurs
-        setCooldown(15);
+        startCooldown();
       })
       .finally(() => setIsLoading(false));
   };
@@ -160,7 +179,6 @@ function Popup({
             style={{
               ...(sell ? { background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" } : {}),
               ...(!isMarketOpen && !sell ? { background: "#94a3b8" } : {}),
-              // Style quand désactivé par le cooldown
               ...(cooldown > 0 || isLoading ? { opacity: 0.6, cursor: "not-allowed", filter: "grayscale(0.8)" } : {})
             }}
           >
