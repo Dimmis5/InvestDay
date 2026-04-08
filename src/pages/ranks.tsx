@@ -14,7 +14,10 @@ export default function Ranks() {
   const { user } = useAuthentification();
   const { lang } = useLanguage();
   const fetch = useFetch();
+  const isCurrentUserAdmin = useMemo(() => (user as any)?.admin === true, [user]);
 
+  console.log("user:", user, "isAdmin:", isCurrentUserAdmin);
+  console.log("user object:", user);
   const translations = {
     fr: {
       headTitle: "Invest Days - Classement Global",
@@ -49,6 +52,7 @@ export default function Ranks() {
 
 const myPerformance = useMemo(() => {
   if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
+  if ((user as any)?.admin === true) return null;
 
   const playersOnly = dataRanks.filter((item: any) => 
     item?.user?.isAdmin === false && item?.user?.isPartenaire === false
@@ -166,6 +170,7 @@ const myPerformance = useMemo(() => {
             data={dataRanks as any[]}
             userId={(user as any)?.id} 
             lang={lang}
+            isAdmin={isCurrentUserAdmin}
           />
         </div>
       </main>

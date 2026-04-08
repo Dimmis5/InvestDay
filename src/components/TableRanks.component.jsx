@@ -2,9 +2,9 @@ import React from "react";
 import styles from "../styles/TableTransaction.module.css";
 
 /**
- * @param {{ data: any[], userId: any, lang: any }} props
+ * @param {{ data: any[], userId: any, lang: any, isAdmin: boolean }} props
  */
-function TableRanks({ data = [], userId, lang }) {
+function TableRanks({ data = [], userId, lang, isAdmin = false }) {
   const translations = {
     fr: {
       rank: "CLASSEMENT",
@@ -57,22 +57,24 @@ const myIndex = allRanked.findIndex(item => String(item.user?.id) === String(use
 
 let displayData = [];
 
-const top10 = allRanked.slice(0, 10);
-displayData = [...top10];
+if (isAdmin) {
+  displayData = allRanked; 
+} else {
+  const top10 = allRanked.slice(0, 10);
+  displayData = [...top10];
 
-if (myIndex >= 10) {
-  displayData.push({ isSeparator: true, id: 'sep-1' });
-
-  const neighbors = [];
-  if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
-  neighbors.push(allRanked[myIndex]);
-  if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
-
-  neighbors.forEach(n => {
-    if (!displayData.find(item => item.user?.id === n.user?.id)) {
-      displayData.push(n);
-    }
-  });
+  if (myIndex >= 10) {
+    displayData.push({ isSeparator: true, id: 'sep-1' });
+    const neighbors = [];
+    if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
+    neighbors.push(allRanked[myIndex]);
+    if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
+    neighbors.forEach(n => {
+      if (!displayData.find(item => item.user?.id === n.user?.id)) {
+        displayData.push(n);
+      }
+    });
+  }
 }
 
   return (
@@ -99,8 +101,7 @@ if (myIndex >= 10) {
           const globalRank = allRanked.findIndex(orig => String(orig.user?.id) === String(item.user?.id)) + 1;
           const medals = ["🥇", "🥈", "🥉"];
           const totalValue = Number(item.publicWalletValue) || 0;
-          const isMe = item.user?.id === userId;
-
+          const isMe = !isAdmin && item.user?.id === userId;
           return (
             <tr 
               key={item.id} 
