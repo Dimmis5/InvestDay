@@ -14,10 +14,9 @@ export default function Ranks() {
   const { user } = useAuthentification();
   const { lang } = useLanguage();
   const fetch = useFetch();
+
   const isCurrentUserAdmin = useMemo(() => (user as any)?.admin === true, [user]);
 
-  console.log("user:", user, "isAdmin:", isCurrentUserAdmin);
-  console.log("user object:", user);
   const translations = {
     fr: {
       headTitle: "Invest Days - Classement Global",
@@ -25,7 +24,7 @@ export default function Ranks() {
       sub: "Basé sur la valeur totale indicative (Cash + Actions)",
       perfTitle: "Ta Performance",
       rankLabel: "Classement #",
-      totalValueLabel: "VALEUR TOTALE INDICATIVE", 
+      totalValueLabel: "VALEUR TOTALE INDICATIVE",
       evolutionLabel: "ÉVOLUTION (P/L)",
       topTraders: "Top Investisseurs",
     },
@@ -50,52 +49,31 @@ export default function Ranks() {
       .catch((err) => console.error("Erreur API:", err));
   }, []);
 
-const myPerformance = useMemo(() => {
-  if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
-  if ((user as any)?.admin === true) return null;
+  const myPerformance = useMemo(() => {
+    if (!dataRanks || !user || !Array.isArray(dataRanks)) return null;
+    if ((user as any)?.admin === true) return null;
 
-  const playersOnly = dataRanks.filter((item: any) => 
-    item?.user?.isAdmin === false && item?.user?.isPartenaire === false
-  );
+    const sortedData = [...dataRanks]
+      .filter((item: any) => item?.user?.isAdmin === false && item?.user?.isPartenaire === false)
+      .sort((a: any, b: any) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
 
-  const bestWalletsPerUser = playersOnly.reduce((acc: any[], current: any) => {
-    const userId = current.user?.id;
-    const existingEntryIndex = acc.findIndex(item => String(item.user?.id) === String(userId));
+    const myIndex = sortedData.findIndex(
+      (item: any) => String(item?.user?.id) === String((user as any)?.id)
+    );
 
-    if (existingEntryIndex === -1) {
-      acc.push(current);
-    } else {
-      if (Number(current.publicWalletValue) > Number(acc[existingEntryIndex].publicWalletValue)) {
-        acc[existingEntryIndex] = current;
-      }
-    }
-    return acc;
-  }, []);
+    if (myIndex === -1) return null;
 
+    const myData = sortedData[myIndex];
+    const STARTING_CASH = 10000;
+    const totalValue = Number(myData.publicWalletValue) || 0;
 
-  const sortedData = [...bestWalletsPerUser].sort(
-    (a: any, b: any) =>
-      (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0)
-  );
-
-  const myIndex = sortedData.findIndex(
-    (item: any) => String(item?.user?.id) === String((user as any)?.id)
-  );
-
-  if (myIndex === -1) return null;
-
-  const myData = sortedData[myIndex];
-  const STARTING_CASH = 10000; 
-  const totalValue = Number(myData.publicWalletValue) || 0;
-
-  return {
-    rank: myIndex + 1,
-    total: totalValue,
-    profit: totalValue - STARTING_CASH,
-    percent: ((totalValue - STARTING_CASH) / STARTING_CASH) * 100,
-  };
-}, [dataRanks, user]);
-
+    return {
+      rank: myIndex + 1,
+      total: totalValue,
+      profit: totalValue - STARTING_CASH,
+      percent: ((totalValue - STARTING_CASH) / STARTING_CASH) * 100,
+    };
+  }, [dataRanks, user]);
 
   return (
     <>
@@ -116,46 +94,51 @@ const myPerformance = useMemo(() => {
           <div className={homeStyles.rankIconBadge}>🏆</div>
         </div>
 
-        <div id="tour-ranks-performance" className={homeStyles.performanceCard}>
-          <div className={homeStyles.perfHeader}>
-            <span className={homeStyles.perfTitle}>{t.perfTitle}</span>
-            <span className={homeStyles.rankBadge}>
-              {myPerformance
-                ? `${t.rankLabel}${myPerformance.rank}`
-                : `${t.rankLabel}--`}
-            </span>
-          </div>
-          <div className={homeStyles.perfGrid}>
-            <div className={homeStyles.perfItem}>
-              <label>{t.totalValueLabel}</label>
-              <div className={homeStyles.perfValue}>
+        {!isCurrentUserAdmin && (
+          <div id="tour-ranks-performance" className={homeStyles.performanceCard}>
+            <div className={homeStyles.perfHeader}>
+              <span className={homeStyles.perfTitle}>{t.perfTitle}</span>
+              <span className={homeStyles.rankBadge}>
                 {myPerformance
-                  ? myPerformance.total.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : "0.00"}{" "}
-                $
-              </div>
+                  ? `${t.rankLabel}${myPerformance.rank}`
+                  : `${t.rankLabel}--`}
+              </span>
             </div>
+            <div className={homeStyles.perfGrid}>
+              <div className={homeStyles.perfItem}>
+                <label>{t.totalValueLabel}</label>
+                <div className={homeStyles.perfValue}>
+                  {myPerformance
+                    ? myPerformance.total.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : "0.00"}{" "}
+                  $
+                </div>
+              </div>
 
-            <div className={homeStyles.perfItem}>
-              <label>{t.evolutionLabel}</label>
-              <div
-                className={homeStyles.perfValue}
-                style={{
-                  color:
-                    (myPerformance?.profit || 0) >= 0 ? "#2ecc71" : "#e74c3c",
-                }}
-              >
-                {myPerformance
-                  ? `${myPerformance.profit >= 0 ? "+" : ""}${myPerformance.profit.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2,  })}`
-                  : "0.00"}{" "}
-                $
+              <div className={homeStyles.perfItem}>
+                <label>{t.evolutionLabel}</label>
+                <div
+                  className={homeStyles.perfValue}
+                  style={{
+                    color:
+                      (myPerformance?.profit || 0) >= 0 ? "#2ecc71" : "#e74c3c",
+                  }}
+                >
+                  {myPerformance
+                    ? `${myPerformance.profit >= 0 ? "+" : ""}${myPerformance.profit.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : "0.00"}{" "}
+                  $
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div
           id="tour-ranks-table"
@@ -168,7 +151,7 @@ const myPerformance = useMemo(() => {
 
           <TableRanks
             data={dataRanks as any[]}
-            userId={(user as any)?.id} 
+            userId={(user as any)?.id}
             lang={lang}
             isAdmin={isCurrentUserAdmin}
           />

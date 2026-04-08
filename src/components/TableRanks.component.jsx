@@ -30,7 +30,7 @@ function TableRanks({ data = [], userId, lang, isAdmin = false }) {
     const currentUserId = current.user?.id;
     if (!currentUserId) return acc;
 
-    const existingIndex = acc.findIndex(item => item.user?.id === currentUserId);
+    const existingIndex = acc.findIndex(item => String(item.user?.id) === String(currentUserId));
 
     if (existingIndex === -1) {
       acc.push(current);
@@ -44,10 +44,9 @@ function TableRanks({ data = [], userId, lang, isAdmin = false }) {
     return acc;
   }, []);
 
-  const allRanked = bestWalletsPerUser
-    .filter((item) => item?.user?.isAdmin === false && item?.user?.isPartenaire === false)
-    .sort((a, b) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
-
+const allRanked = data
+  .filter((item) => item?.user?.isAdmin === false && item?.user?.isPartenaire === false)
+  .sort((a, b) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
   if (!allRanked.length) {
     return <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>{t.loading}</p>;
   }
