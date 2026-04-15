@@ -26,7 +26,7 @@ function TableRanks({ data = [], userId, lang, isAdmin = false }) {
 
   const t = translations[lang] || translations.fr;
 
- const bestWalletsPerUser = data.reduce((acc, current) => {
+  const bestWalletsPerUser = data.reduce((acc, current) => {
     const currentUserId = current.user?.id;
     if (!currentUserId) return acc;
 
@@ -44,37 +44,37 @@ function TableRanks({ data = [], userId, lang, isAdmin = false }) {
     return acc;
   }, []);
 
-const allRanked = data
-  .filter((item) => item?.user?.isAdmin === false && item?.user?.isPartenaire === false)
-  .sort((a, b) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
+  const allRanked = bestWalletsPerUser
+    .filter((item) => item?.user?.isAdmin === false && item?.user?.isPartenaire === false)
+    .sort((a, b) => (Number(b.publicWalletValue) || 0) - (Number(a.publicWalletValue) || 0));
+
   if (!allRanked.length) {
     return <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>{t.loading}</p>;
   }
 
+  const myIndex = allRanked.findIndex(item => String(item.user?.id) === String(userId));
 
-const myIndex = allRanked.findIndex(item => String(item.user?.id) === String(userId));
+  let displayData = [];
 
-let displayData = [];
+  if (isAdmin) {
+    displayData = allRanked;
+  } else {
+    const top10 = allRanked.slice(0, 10);
+    displayData = [...top10];
 
-if (isAdmin) {
-  displayData = allRanked; 
-} else {
-  const top10 = allRanked.slice(0, 10);
-  displayData = [...top10];
-
-  if (myIndex >= 10) {
-    displayData.push({ isSeparator: true, id: 'sep-1' });
-    const neighbors = [];
-    if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
-    neighbors.push(allRanked[myIndex]);
-    if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
-    neighbors.forEach(n => {
-      if (!displayData.find(item => item.user?.id === n.user?.id)) {
-        displayData.push(n);
-      }
-    });
+    if (myIndex >= 10) {
+      displayData.push({ isSeparator: true, id: 'sep-1' });
+      const neighbors = [];
+      if (allRanked[myIndex - 1]) neighbors.push(allRanked[myIndex - 1]);
+      neighbors.push(allRanked[myIndex]);
+      if (allRanked[myIndex + 1]) neighbors.push(allRanked[myIndex + 1]);
+      neighbors.forEach(n => {
+        if (!displayData.find(item => item.user?.id === n.user?.id)) {
+          displayData.push(n);
+        }
+      });
+    }
   }
-}
 
   return (
     <table className={styles.transactionTable}>
@@ -100,10 +100,11 @@ if (isAdmin) {
           const globalRank = allRanked.findIndex(orig => String(orig.user?.id) === String(item.user?.id)) + 1;
           const medals = ["🥇", "🥈", "🥉"];
           const totalValue = Number(item.publicWalletValue) || 0;
-          const isMe = !isAdmin && item.user?.id === userId;
+          const isMe = !isAdmin && String(item.user?.id) === String(userId);
+
           return (
-            <tr 
-              key={item.id} 
+            <tr
+              key={item.id}
               className={`${styles.tr} ${isMe ? styles.currentUserRow : ""}`}
             >
               <td className={styles.td} style={{ fontWeight: '700' }}>
@@ -111,14 +112,14 @@ if (isAdmin) {
               </td>
               <td className={styles.td}>
                 <div style={{ fontWeight: '600' }}>
-                  {item.user?.name || `Joueur ${item.user?.studentId || ''}`} 
+                  {item.user?.name || `Joueur ${item.user?.studentId || ''}`}
                   {isMe && <span style={{ marginLeft: '8px', opacity: 0.8, fontWeight: '800' }}>{t.you}</span>}
                 </div>
               </td>
               <td className={styles.td} style={{ fontWeight: '800' }}>
-                {totalValue.toLocaleString(undefined, { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
+                {totalValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })} $
               </td>
             </tr>

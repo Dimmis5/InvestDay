@@ -125,51 +125,60 @@ function calculateAssets() {
     if (wallet) calculateAssets();
   }
 
-  async function getRealLines(transactions: any) {
-    let acc: any = [];
-    transactions.forEach((transaction: any) => {
-      if (transaction.status === "EXECUTED") {
-        let index = acc.findIndex(
-          (item: any) => item.symbol === transaction.symbol
-        );
-        if (index === -1) {
-          acc.push({
-            symbol: transaction.symbol,
-            quantity: transaction.isSellOrder
-              ? -transaction.quantity
-              : transaction.quantity,
-            valueAtExecution: transaction.isSellOrder
-              ? []
-              : [{ quantity: transaction.quantity, price: transaction.valueAtExecution }],
-          });
-        } else {
-          acc[index].quantity += transaction.isSellOrder
+async function getRealLines(transactions: any) {
+  let acc: any = [];
+
+  const sorted = [...transactions].sort((a: any, b: any) => 
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  sorted.forEach((transaction: any) => {
+    if (transaction.status === "EXECUTED") {
+      let index = acc.findIndex(
+        (item: any) => item.symbol === transaction.symbol
+      );
+
+      if (index === -1) {
+        acc.push({
+          symbol: transaction.symbol,
+          quantity: transaction.isSellOrder
             ? -transaction.quantity
-            : transaction.quantity;
-          if (!transaction.isSellOrder) {
-            acc[index].valueAtExecution.push({
-              quantity: transaction.quantity,
-              price: transaction.valueAtExecution,
-            });
+            : transaction.quantity,
+          valueAtExecution: transaction.isSellOrder
+            ? []
+            : [{ quantity: transaction.quantity, price: transaction.valueAtExecution }],
+        });
+      } else {
+        acc[index].quantity += transaction.isSellOrder
+          ? -transaction.quantity
+          : transaction.quantity;
+
+        if (transaction.isSellOrder) {
+          if (acc[index].quantity <= 0.000000001) {
+            acc[index].valueAtExecution = [];
           }
+        } else {
+          acc[index].valueAtExecution.push({
+            quantity: transaction.quantity,
+            price: transaction.valueAtExecution,
+          });
         }
       }
-    });
-    acc = acc.filter((item: any) => item.quantity > 0.000000001);
-    return acc;
-  }
-  
+    }
+  });
+
+  acc = acc.filter((item: any) => item.quantity > 0.000000001);
+  return acc;
+}
 
 async function getPrice(symbol: string): Promise<number> {
   try {
     const cached = valuesCachedRef.current[symbol];
 
-    // Si marché fermé et prix déjà en cache → on ne refetch pas
     if (cached?.market_status === "closed" && cached?.value) {
       return cached.value;
     }
 
-    // Cache court (5s) si marché ouvert
     if (cached && cached.date > Date.now() - 5000) {
       return cached.value;
     }
@@ -225,10 +234,9 @@ async function getPrice(symbol: string): Promise<number> {
     refreshWallets();
   }, [isAuthenticated]);
 
-  // Ajouter cette fonction dans WalletProvider
 async function syncPublicValue(walletId: number, totalValue: number) {
   const now = Date.now();
-  if (now - lastSyncRef.current < 30000) return; // ✅ Max 1 sync toutes les 30s
+  if (now - lastSyncRef.current < 30000) return;
   lastSyncRef.current = now;
 
   try {
