@@ -67,7 +67,7 @@ const selectedLabel = isAdmin && selectedWallet?.user
             <NavTab handleToggle={setActive} active={active} id="market" tourId="tour-market" title={lang === "fr" ? "Marchés" : "Markets"} to="/market" />
             <NavTab handleToggle={setActive} active={active} id="ranking" tourId="tour-ranking" title={lang === "fr" ? "Classement" : "Ranking"} to="/ranks" />
             {user && user.admin && (
-              <NavTab handleToggle={setActive} active={active} id="admin" title="Admin 🔒" to="/admin" />
+              <NavTab handleToggle={setActive} active={active} id="admin" title="Admin" to="/admin" />
             )}
           </ul>
         </div>
