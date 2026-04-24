@@ -16,17 +16,6 @@ import { useAuthentification } from "../../context/AuthContext";
 type TimeRange = "1H" | "1D" | "1W" | "1M" | "ALL";
 
 
-function isEuronextOpen(): boolean {
-  const now = new Date();
-  const parisTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
-  const day = parisTime.getDay();
-  const hours = parisTime.getHours();
-  const minutes = parisTime.getMinutes();
-  const timeInMinutes = hours * 60 + minutes;
-  if (day === 0 || day === 6) return false;
-  return timeInMinutes >= 540 && timeInMinutes < 1050;
-}
-
 function isNYSEOpen(): boolean {
   const now = new Date();
   const nyTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
@@ -60,7 +49,6 @@ function getRangeMin(range: TimeRange): number | undefined {
   return map[range];
 }
 
-
 export default function DetailAction(req: Request) {
   const [data, setData] = useState<any>({ results: [] });
   const [isOpen, setIsOpen] = useState(false);
@@ -68,8 +56,6 @@ export default function DetailAction(req: Request) {
   const [chartType, setChartType] = useState<"line" | "candlestick">("line");
   const [range, setRange] = useState<TimeRange>("ALL");
   const [loadingChart, setLoadingChart] = useState(true);
-  const [buyCooldown, setBuyCooldown] = useState(false);
-const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -78,117 +64,92 @@ const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const router = useRouter();
   const { nameAction, name, market } = router.query;
   const fetch = useFetch();
-  function startBuyCooldown() {
-  setBuyCooldown(true);
-  setCooldownSeconds(20);
-  const interval = setInterval(() => {
-    setCooldownSeconds(prev => {
-      if (prev <= 1) {
-        clearInterval(interval);
-        setBuyCooldown(false);
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-}
-
 
   const translations = {
     fr: { cashLabel: "Disponible (P.", buyBtn: "Acheter", popTitle: "Acheter", popSub: "Achat de", loading: "Chargement du graphique...", noData: "Données indisponibles", line: "Courbe", candle: "Bougies" },
     en: { cashLabel: "Available (P.", buyBtn: "Buy", popTitle: "Buy", popSub: "Purchase of", loading: "Loading chart...", noData: "No data available", line: "Line", candle: "Candlestick" }
   };
   const t = translations[lang as keyof typeof translations] || translations.fr;
-const chartData = useMemo(() => {
-  const results = data?.results || [];
-  if (results.length === 0 && detail?.price) {
-    const now = Date.now();
-    const fallback = [
-      [now - 3600000, detail.price],
-      [now, detail.price]
-    ];
-    return { line: fallback, candle: fallback.map(p => [p[0], p[1], p[1], p[1], p[1]]) };
-  }
+  const chartData = useMemo(() => {
+    let results = data?.results ? [...data.results] : [];
 
-  const line = results.map((i: any) => [Number(i.t), i.c]);
-  const candle = results.map((i: any) => [
-    Number(i.t), 
-    i.o ?? i.c, 
-    i.h ?? i.c, 
-    i.l ?? i.c, 
-    i.c
-  ]);
-
-  return { line, candle };
-}, [data, detail?.price]);
-
-async function fetchDetail(symbol: string) {
-  try {
-    const response = await fetch.get("/api/stock/detail?symbol=" + symbol);
-    const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);
-
-    const lastPrice = lastPriceRes?.price || 0;
-
-    const symbolUpper = symbol.toUpperCase();
-    const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
-    const europeanSuffixes = ['.PA', '.AS', '.BR', '.MI', '.MC', '.DE', '.L', '.SW'];
-
-    const isForex = (market === "forex") || (market === "forex-fx") || forexPairs.includes(symbolUpper);
-    const isCrypto = (market === "crypto") || (symbolUpper.endsWith("USD") && !forexPairs.includes(symbolUpper));
-    const isEuropean = europeanSuffixes.some(suffix => symbolUpper.endsWith(suffix));
-
-    let finalStatus = "closed";
-    if (isCrypto) {
-      finalStatus = "open";
-    } else if (isForex) {
-      finalStatus = isForexOpen() ? "open" : "closed";
-    } else if (isEuropean) {
-      finalStatus = isEuronextOpen() ? "open" : "closed";
-    } else {
-      finalStatus = isNYSEOpen() ? "open" : "closed";
+    if (results.length === 0 && detail?.price) {
+      const now = Date.now();
+      results = [
+        { t: now - 3600000, c: detail.price, o: detail.price, h: detail.price, l: detail.price },
+        { t: now, c: detail.price, o: detail.price, h: detail.price, l: detail.price }
+      ];
+    } else if (results.length > 0 && detail?.price) {
+        const lastPointTime = Number(results[results.length - 1].t);
+        if (Date.now() > lastPointTime) {
+            results.push({ t: Date.now(), c: detail.price, o: detail.price, h: detail.price, l: detail.price });
+        }
     }
 
-    setDetail((prev: any) => {
-      const shouldKeepPrice = finalStatus === "closed" && prev?.price && prev.price > 0;
-      return {
-        ...response.results,
-        price: shouldKeepPrice ? prev.price : (lastPrice || prev?.price || 0),
-        market_status: finalStatus,
-      };
-    });
+    const line = results.map((i: any) => [Number(i.t), i.c]);
+    const candle = results.map((i: any) => [Number(i.t), i.o ?? i.c, i.h ?? i.c, i.l ?? i.c, i.c]);
+    return { line, candle };
+  }, [data, detail?.price]);
 
-  } catch (e) {
-    console.error("Erreur dans fetchDetail", e);
+  async function fetchDetail(symbol: string) {
+    try {
+      const response = await fetch.get("/api/stock/detail?symbol=" + symbol);
+      const price = await getPrice(symbol);
+      const lastPriceRes = await fetch.get("/api/stock/lastPrice?symbol=" + symbol);
+      
+      const symbolUpper = symbol.toUpperCase();
+      const forexPairs = ['EURUSD', 'USDJPY', 'GBPUSD', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'EURGBP'];
+
+      const isForex = (market === "forex") || (market === "forex-fx") || forexPairs.includes(symbolUpper);
+      const isCrypto = (market === "crypto") || (symbolUpper.endsWith("USD") && !forexPairs.includes(symbolUpper));
+
+      let finalStatus = "closed";
+      if (isCrypto) {
+        finalStatus = "open";
+      } else if (isForex) {
+        finalStatus = isForexOpen() ? "open" : "closed";
+      } else {
+        finalStatus = lastPriceRes?.results?.[0]?.market_status || (isNYSEOpen() ? "open" : "closed");
+      }
+
+      setDetail({
+        ...response.results,
+        price,
+        market_status: finalStatus
+      });
+    } catch (e) {
+      console.error("Erreur dans fetchDetail", e);
+    }
   }
-}
-async function fetchData(symbol: string, marketParam?: string) {
-  setLoadingChart(true);
-  try {
-    const m = marketParam || "stocks";
-    const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
-    setData(res || { results: [] });
-  } catch (e) {
-    setData({ results: [] });
-  } finally {
-    setLoadingChart(false);
+
+  async function fetchData(symbol: string) {
+    setLoadingChart(true);
+    try {
+      const m = (market as string) || "stocks";
+      const res = await fetch.get(`/api/stock/info?symbol=${symbol}&market=${m}&range=ALL`);
+      setData(res || { results: [] });
+    } catch (e) {
+      setData({ results: [] });
+    } finally {
+      setLoadingChart(false);
+    }
   }
-}
-useEffect(() => {
-  if (router.isReady && nameAction) {
-    fetchData(nameAction as string, market as string);
-    fetchDetail(nameAction as string);
-  }
-}, [router.isReady, nameAction, market]);
+
+  useEffect(() => {
+    if (router.isReady && nameAction) {
+      fetchData(nameAction as string);
+      fetchDetail(nameAction as string);
+    }
+  }, [router.isReady, nameAction]);
 
 
 useEffect(() => {
   if (!nameAction) return;
-  const delay = detail?.market_status === "closed" ? 60000 : 5000;
   const interval = setInterval(() => {
     fetchDetail(nameAction as string);
-  }, delay);
+  }, 5000); 
   return () => clearInterval(interval);
-}, [nameAction, detail?.market_status]);
+}, [nameAction]);
 
   const handleRangeChange = (newRange: TimeRange) => {
     setRange(newRange);
@@ -216,10 +177,7 @@ useEffect(() => {
     yAxis: { 
         labels: { style: { color: '#888' }, format: '{value}$' }, 
         opposite: true, 
-        gridLineColor: '#f5f5f5',
-            startOnTick: false,
-    endOnTick: false,
-    threshold: null //
+        gridLineColor: '#f5f5f5' 
     },
     navigator: { 
         enabled: true, 
@@ -264,17 +222,9 @@ useEffect(() => {
                 <span style={{ fontWeight: '700', fontSize: '18px' }}>{(wallets[selectedId]?.cash || 0).toLocaleString()} $</span>
               </div>
             </div>
-<button
-  className={homeStyles.buyButton}
-  style={{ width: '160px', opacity: (detail?.price && !buyCooldown) ? 1 : 0.5, cursor: buyCooldown ? 'not-allowed' : 'pointer' }}
-  onClick={() => {
-    if (!detail?.price || buyCooldown) return;
-    startBuyCooldown();
-    setIsOpen(true);
-  }}
->
-  {buyCooldown ? `${t.buyBtn} (${cooldownSeconds}s)` : t.buyBtn}
-</button>
+            <button className={homeStyles.buyButton} style={{ width: '160px', opacity: detail?.price ? 1 : 0.5 }} onClick={() => detail?.price && setIsOpen(true)}>
+              {t.buyBtn}
+            </button>
           </div>
         </div>
 
@@ -322,6 +272,7 @@ useEffect(() => {
 
 
         <Popup
+          title={t.popTitle}
           subtitle={`${t.popSub} ${nameAction}`}
           maxCount={detail?.price ? (wallets[selectedId]?.cash || 0) / detail.price : 0}
           symbol={nameAction as string}
